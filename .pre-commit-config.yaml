@@ -34,6 +34,6 @@ repos:
       - id: ansible-lint
         name: ansible-lint
         language: system
-        entry: ansible-lint
+        entry: sh -c 'cd metal/ansible && ANSIBLE_CONFIG=$PWD/ansible.cfg ansible-lint'
         files: '^metal/ansible/'
         pass_filenames: false

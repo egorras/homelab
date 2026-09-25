@@ -1,0 +1,7 @@
+# Public keys allowed to SSH as root everywhere (private halves: admin PC, and CI via metal/secrets.sops.yaml).
+admin_ssh_keys:
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBvXo+9lAIwj8pGhCT5Gkh2sEuSU/gtTYmUDLkXVTbC7 admin-pc
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIITW0D/X3POCsB+5PmUolRimrIB2FNDOxckwjCg++BA6 homelab-ci
+
+lan_cidr: 192.168.0.0/24
+secrets_file: "{{ playbook_dir }}/../../secrets.sops.yaml"

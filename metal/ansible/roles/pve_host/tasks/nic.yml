@@ -1,0 +1,28 @@
+# The onboard I219-LM (e1000e) hangs under load with offloads on ("Detected Hardware Unit Hang").
+# Offloads off + a watchdog that resets the NIC, and reboots only if the kernel logged a hang.
+- name: Persist NIC offloads off
+  ansible.builtin.lineinfile:
+    path: /etc/network/interfaces
+    insertafter: "^iface {{ pve_host_nic }} inet manual"
+    line: "\tpost-up /usr/sbin/ethtool -K {{ pve_host_nic }} tso off gso off gro off"
+  notify: Apply NIC offload settings
+
+- name: Install nic-watchdog script
+  ansible.builtin.copy:
+    src: nic-watchdog.sh
+    dest: /usr/local/sbin/nic-watchdog.sh
+    mode: "0755"
+
+- name: Install nic-watchdog units
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/etc/systemd/system/{{ item }}"
+    mode: "0644"
+  loop: [nic-watchdog.service, nic-watchdog.timer]
+
+- name: Enable nic-watchdog timer
+  ansible.builtin.systemd_service:
+    name: nic-watchdog.timer
+    enabled: true
+    state: started
+    daemon_reload: true

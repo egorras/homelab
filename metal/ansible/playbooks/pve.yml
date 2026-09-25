@@ -1,0 +1,9 @@
+- name: Proxmox host
+  hosts: proxmox
+  pre_tasks:
+    - name: Load secrets
+      community.sops.load_vars:
+        file: "{{ secrets_file }}"
+      no_log: true
+  roles:
+    - pve_host

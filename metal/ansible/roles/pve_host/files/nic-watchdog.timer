@@ -1,0 +1,9 @@
+[Unit]
+Description=Check network every minute (e1000e hang watchdog)
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,44 @@
+- name: Mount HDD by UUID
+  ansible.posix.mount:
+    path: "{{ pve_host_hdd_mountpoint }}"
+    src: "UUID={{ pve_host_hdd_uuid }}"
+    fstype: ext4
+    opts: defaults,noatime,nofail
+    state: mounted
+
+- name: HDD directories
+  ansible.builtin.file:
+    path: "{{ pve_host_hdd_mountpoint }}/{{ item }}"
+    state: directory
+    mode: "0755"
+  loop: "{{ pve_host_hdd_dirs }}"
+
+- name: Allow snippets and disk imports on local storage
+  ansible.builtin.command: pvesm set local --content iso,vztmpl,backup,snippets,import
+  changed_when: false
+
+- name: Check hdd-backup storage
+  ansible.builtin.command: pvesh get /storage/hdd-backup
+  register: pve_host_hdd_storage
+  changed_when: false
+  failed_when: false
+
+- name: Add hdd-backup storage
+  ansible.builtin.command: >-
+    pvesm add dir hdd-backup --path {{ pve_host_hdd_mountpoint }}/backups --content backup
+    --is_mountpoint {{ pve_host_hdd_mountpoint }} --prune-backups keep-last={{ pve_host_backup_keep_last }}
+  when: pve_host_hdd_storage.rc != 0
+  changed_when: true
+
+- name: Check nightly backup job
+  ansible.builtin.command: pvesh get /cluster/backup/nightly
+  register: pve_host_backup_job
+  changed_when: false
+  failed_when: false
+
+- name: Add nightly backup job (all guests)
+  ansible.builtin.command: >-
+    pvesh create /cluster/backup --id nightly --schedule {{ pve_host_backup_schedule }} --all 1
+    --storage hdd-backup --mode snapshot --compress zstd --notes-template {{ '{{guestname}}' | quote }}
+  when: pve_host_backup_job.rc != 0
+  changed_when: true

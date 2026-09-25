@@ -1,0 +1,8 @@
+- name: Reload sshd
+  ansible.builtin.systemd_service:
+    name: ssh
+    state: reloaded
+
+- name: Apply NIC offload settings
+  ansible.builtin.command: ethtool -K {{ pve_host_nic }} tso off gso off gro off
+  changed_when: true

@@ -20,3 +20,6 @@ kubeconfig
 .idea/
 .DS_Store
 Thumbs.db
+
+# build outputs (ISOs, rendered answer files with secrets)
+metal/proxmox/out/

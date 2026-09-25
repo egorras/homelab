@@ -18,7 +18,7 @@ Any manual step found along the way becomes code or a runbook.
   tailnet ACL limits `tag:ci` to the hosts it deploys.
 
 ## Milestones
-- [ ] **M0 — repo foundation**: toolchain (mise/devcontainer), pre-commit, lint CI, SOPS, Renovate, ADRs.
+- [x] **M0 — repo foundation**: toolchain (mise/devcontainer), pre-commit, lint CI, SOPS, Renovate, ADRs.
   ✅ lint green; gitleaks blocks a planted fake key.
 - [ ] **M1 — Proxmox from code**: `answer.toml` auto-install on NVMe (HDD untouched); Ansible `pve_host` — repos,
   NIC offload fix + watchdog, HDD mount + backup storage/job, sensors + node-exporter, Tailscale on host,

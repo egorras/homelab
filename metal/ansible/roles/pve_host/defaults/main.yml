@@ -1,0 +1,42 @@
+pve_host_upgrade: true
+
+pve_host_hdd_mountpoint: /mnt/hdd
+pve_host_hdd_dirs: [backups, media]
+
+pve_host_backup_schedule: "03:00"
+pve_host_backup_keep_last: 3
+
+# Role + API token OpenTofu uses. The token secret is written into metal/secrets.sops.yaml on creation.
+pve_host_tofu_user: tofu@pve
+pve_host_tofu_token_id: ci
+pve_host_tofu_rotate_token: false
+pve_host_tofu_privs:
+  - Datastore.Allocate
+  - Datastore.AllocateSpace
+  - Datastore.AllocateTemplate
+  - Datastore.Audit
+  - Mapping.Audit
+  - Mapping.Modify
+  - Mapping.Use
+  - Pool.Allocate
+  - Pool.Audit
+  - SDN.Use
+  - Sys.Audit
+  - Sys.Console
+  - Sys.Modify
+  - VM.Allocate
+  - VM.Audit
+  - VM.Clone
+  - VM.Config.CDROM
+  - VM.Config.Cloudinit
+  - VM.Config.CPU
+  - VM.Config.Disk
+  - VM.Config.HWType
+  - VM.Config.Memory
+  - VM.Config.Network
+  - VM.Config.Options
+  - VM.GuestAgent.Audit
+  - VM.Migrate
+  - VM.PowerMgmt
+
+pve_host_tailscale_tags: tag:pve
