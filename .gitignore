@@ -1,0 +1,22 @@
+# secrets — only *.sops.* files may hold secret material
+*.agekey
+keys.txt
+.env
+*.env
+!*.sops.env
+*.decrypted.*
+
+# opentofu (encrypted state IS committed; see docs/adr/0004)
+.terraform/
+*.tfplan
+crash.log
+
+# kube / ansible local artifacts
+kubeconfig
+*.retry
+
+# editors / os
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

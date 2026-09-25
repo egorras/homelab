@@ -1,0 +1,12 @@
+{
+  "name": "homelab",
+  "image": "mcr.microsoft.com/devcontainers/base:debian",
+  "features": {
+    "ghcr.io/devcontainers-extra/features/mise:1": {}
+  },
+  "mounts": [
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.config/sops/age,target=/home/vscode/.config/sops/age,type=bind,readonly"
+  ],
+  "postCreateCommand": "mise trust && mise install && mise exec -- pre-commit install",
+  "remoteUser": "vscode"
+}
