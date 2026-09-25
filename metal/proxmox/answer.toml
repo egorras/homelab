@@ -1,0 +1,27 @@
+# Proxmox VE unattended install — rendered and embedded into the ISO by build-iso.sh.
+# https://pve.proxmox.com/wiki/Automated_Installation
+[global]
+keyboard = "en-us"
+country = "de"
+fqdn = "pve.lab.egorras.net"
+mailto = "admin@egorras.net"
+timezone = "Europe/Berlin"
+root-password-hashed = "__ROOT_PASSWORD_HASH__"   # injected from metal/secrets.sops.yaml
+root-ssh-keys = [
+  "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBvXo+9lAIwj8pGhCT5Gkh2sEuSU/gtTYmUDLkXVTbC7 admin-pc",
+  "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIITW0D/X3POCsB+5PmUolRimrIB2FNDOxckwjCg++BA6 homelab-ci",
+]
+reboot-mode = "reboot"
+
+[network]
+source = "from-answer"
+cidr = "192.168.0.18/24"
+gateway = "192.168.0.1"
+dns = "192.168.0.1"
+filter.ID_NET_NAME_MAC = "enx*"   # the only wired NIC; no MAC in a public repo
+
+[disk-setup]
+filesystem = "ext4"
+disk-list = ["nvme0n1"]   # NVMe only — the 4 TB HDD (sda) is never touched
+lvm.swapsize = 8
+lvm.maxroot = 40          # rest goes to local-lvm for guest disks

@@ -1,0 +1,6 @@
+[Unit]
+Description=Reset nic0 / reboot when e1000e hangs
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/nic-watchdog.sh

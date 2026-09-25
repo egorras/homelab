@@ -1,0 +1,27 @@
+- name: Package repositories and upgrade
+  ansible.builtin.import_tasks: repos.yml
+  tags: [repos]
+
+- name: SSH access
+  ansible.builtin.import_tasks: ssh.yml
+  tags: [ssh]
+
+- name: NIC hang workaround (e1000e)
+  ansible.builtin.import_tasks: nic.yml
+  tags: [nic]
+
+- name: HDD, storage and backups
+  ansible.builtin.import_tasks: storage.yml
+  tags: [storage]
+
+- name: Host monitoring
+  ansible.builtin.import_tasks: monitoring.yml
+  tags: [monitoring]
+
+- name: Tailscale subnet router
+  ansible.builtin.import_tasks: tailscale.yml
+  tags: [tailscale]
+
+- name: OpenTofu API user and token
+  ansible.builtin.import_tasks: tofu.yml
+  tags: [tofu]

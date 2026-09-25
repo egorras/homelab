@@ -1,0 +1,43 @@
+# Runs on the host, not in a guest: CI and remote access must not depend on any VM/LXC (docs/adr/0003).
+- name: Tailscale apt key
+  ansible.builtin.get_url:
+    url: https://pkgs.tailscale.com/stable/debian/trixie.noarmor.gpg
+    dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+    mode: "0644"
+
+- name: Tailscale apt repository
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/tailscale.sources
+    mode: "0644"
+    content: |
+      Types: deb
+      URIs: https://pkgs.tailscale.com/stable/debian
+      Suites: trixie
+      Components: main
+      Signed-By: /usr/share/keyrings/tailscale-archive-keyring.gpg
+
+- name: Install tailscale
+  ansible.builtin.apt:
+    name: tailscale
+    update_cache: true
+
+- name: IP forwarding for subnet routing
+  ansible.posix.sysctl:
+    name: "{{ item }}"
+    value: "1"
+    sysctl_file: /etc/sysctl.d/99-tailscale.conf
+  loop: [net.ipv4.ip_forward, net.ipv6.conf.all.forwarding]
+
+- name: Check tailscale state
+  ansible.builtin.command: tailscale status --json
+  register: pve_host_ts_status
+  changed_when: false
+  failed_when: false
+
+- name: Join tailnet
+  ansible.builtin.command: >-
+    tailscale up --auth-key={{ tailscale_auth_key }} --hostname=pve
+    --advertise-routes={{ lan_cidr }} --advertise-tags={{ pve_host_tailscale_tags }} --accept-dns=false
+  when: (pve_host_ts_status.stdout | from_json).BackendState | default('') != 'Running'
+  changed_when: true
+  no_log: true
