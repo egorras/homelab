@@ -1,0 +1,7 @@
+# Single age recipient (private key: password manager + offline copy, never in git).
+creation_rules:
+  - path_regex: kubernetes/.*\.sops\.ya?ml$
+    encrypted_regex: ^(data|stringData)$
+    age: age14uzygqz0hgepvwphdrsualggykr8wpesulf29vphwzhr6ttxafhqmsjpgs
+  - path_regex: .*\.sops\.(ya?ml|json|env)$
+    age: age14uzygqz0hgepvwphdrsualggykr8wpesulf29vphwzhr6ttxafhqmsjpgs

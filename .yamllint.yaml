@@ -1,0 +1,14 @@
+extends: default
+rules:
+  document-start: disable
+  truthy:
+    allowed-values: ["true", "false", "on"]   # "on" for GitHub Actions triggers
+  line-length:
+    max: 160
+  comments:
+    min-spaces-from-content: 1
+  indentation:
+    indent-sequences: consistent
+ignore: |
+  ?*.sops.yaml
+  **/flux-system/gotk-components.yaml
