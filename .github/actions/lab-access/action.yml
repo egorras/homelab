@@ -14,8 +14,7 @@ runs:
       with:
         oauth-client-id: ${{ inputs.ts-oauth-client-id }}
         oauth-secret: ${{ inputs.ts-oauth-secret }}
-        tags: tag:ci
-        args: --accept-routes   # LAN (192.168.0.0/24) via the pve subnet router
+        tags: tag:ci   # the action already sets --accept-routes (LAN via the pve subnet router)
 
     - name: Wait for the Proxmox API over the tailnet
       shell: bash
