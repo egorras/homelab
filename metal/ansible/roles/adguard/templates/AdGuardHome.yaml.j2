@@ -159,7 +159,7 @@ filtering:
   safebrowsing_block_host: standard-block.dns.adguard.com
   rewrites:
 {% for domain in adguard_rewrite_domains %}
-    - domain: '{{ domain }}'
+    - domain: {{ "'" ~ domain ~ "'" if domain.startswith('*') else domain }}
       answer: {{ adguard_rewrite_target }}
       enabled: true
 {% endfor %}
