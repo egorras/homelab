@@ -25,6 +25,11 @@
         href: https://map.lab.egorras.net
         icon: mdi-lan
         siteMonitor: https://map.lab.egorras.net
+    - Headlamp:
+        href: https://k8s.lab.egorras.net
+        icon: headlamp.svg
+        description: Kubernetes UI
+        siteMonitor: https://k8s.lab.egorras.net
     - GitHub:
         href: https://github.com/egorras/homelab
         icon: github.svg
