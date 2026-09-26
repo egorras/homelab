@@ -14,11 +14,12 @@ Immich stores absolute paths (`/data/...`) in the database, so the library must 
 
 ## Restore the database from a dump
 
-For a fresh cluster, a rebuilt k3s VM, or the one-time move from the old lab (dump
-`immich-db-backup-20260926T020000-v3.2.2-pg14.19.sql.gz`, Immich v3.2.2).
+For a fresh cluster or a rebuilt k3s VM. (Tried once for the move from the old lab, dump
+`immich-db-backup-20260926T020000-v3.2.2-pg14.19.sql.gz`: it worked, but the lab started empty instead.)
 
 1. Deploy the **same Immich version** as the dump (its name has it) with `immich-server` and
-   `immich-machine-learning` at `replicas: 0`: only Postgres and Valkey run, and nothing writes to the empty DB.
+   `immich-machine-learning` at `replicas: 0` (in git, or `kubectl -n flux-system patch kustomization apps --type merge
+   -p '{"spec":{"suspend":true}}'` and scale them by hand): only Postgres and Valkey run, nothing writes to the DB.
    Postgres creates the empty `immich` database on first start.
 2. On the k3s VM (`ssh debian@k3s.lab.egorras.net`), load the dump. The `sed` is from Immich's restore docs: the
    dump clears `search_path`, which breaks the vector extensions on restore.
