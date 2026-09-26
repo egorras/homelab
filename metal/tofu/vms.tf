@@ -1,5 +1,5 @@
 # Host directory (created by Ansible pve_host on the HDD) that the k3s VM mounts as virtiofs tag "photos".
-resource "proxmox_virtual_environment_hardware_mapping_dir" "photos" {
+resource "proxmox_hardware_mapping_dir" "photos" {
   name    = "photos"
   comment = "Immich library (HDD). Managed by OpenTofu."
   map = [
@@ -59,7 +59,7 @@ resource "proxmox_virtual_environment_vm" "k3s" {
   # Immich originals stay on the HDD; vzdump doesn't include virtiofs shares, so they aren't copied into
   # the nightly VM backup (their off-site copy is a separate job).
   virtiofs {
-    mapping = proxmox_virtual_environment_hardware_mapping_dir.photos.name
+    mapping = proxmox_hardware_mapping_dir.photos.name
   }
 
   operating_system {
