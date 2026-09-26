@@ -46,6 +46,15 @@ jobs:
           metal/tofu/run.sh init -input=false -no-color
           metal/tofu/run.sh plan -input=false -no-color | tee "$RUNNER_TEMP/tofu.txt"
 
+      - name: ansible guests --check --diff
+        id: guests
+        run: |
+          cd metal/ansible && export ANSIBLE_CONFIG=$PWD/ansible.cfg
+          rc=0; ansible-playbook playbooks/guests.yml --check --diff > "$RUNNER_TEMP/guests.txt" 2>&1 || rc=$?
+          cat "$RUNNER_TEMP/guests.txt"
+          # 4 = unreachable: guests this PR creates don't exist yet
+          [ "$rc" -eq 0 ] || [ "$rc" -eq 4 ]
+
       - name: Comment on PR
         if: always() && (steps.ansible.outcome != 'skipped' || steps.tofu.outcome != 'skipped')
         env:
@@ -53,6 +62,7 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           ANSIBLE_OUTCOME: ${{ steps.ansible.outcome }}
           TOFU_OUTCOME: ${{ steps.tofu.outcome }}
+          GUESTS_OUTCOME: ${{ steps.guests.outcome }}
         run: |
           section() {  # title, outcome, file, lines to keep from the end
             printf '<details><summary>%s — <b>%s</b></summary>\n\n```\n' "$1" "$2"
@@ -63,10 +73,13 @@ jobs:
             echo "### infra plan for \`${HEAD_SHA::7}\`"
             echo
             grep -h -A1 'PLAY RECAP' "$RUNNER_TEMP/ansible.txt" 2>/dev/null | tail -1 | sed 's/^/ansible: `/; s/$/`/'
+            echo
+            sed -n '/PLAY RECAP/,/^$/p' "$RUNNER_TEMP/guests.txt" 2>/dev/null | grep -v 'PLAY RECAP' | grep . | sed 's/^/guests: `/; s/$/`/'
             grep -hE '^(Plan:|No changes\.)' "$RUNNER_TEMP/tofu.txt" 2>/dev/null | sed 's/^/tofu: /'
             echo
             section "tofu plan" "$TOFU_OUTCOME" "$RUNNER_TEMP/tofu.txt" 300
             section "ansible --check --diff" "$ANSIBLE_OUTCOME" "$RUNNER_TEMP/ansible.txt" 400
+            section "ansible guests --check --diff" "$GUESTS_OUTCOME" "$RUNNER_TEMP/guests.txt" 400
           } > "$RUNNER_TEMP/comment.md"
           gh pr comment "${{ github.event.pull_request.number }}" --edit-last --create-if-none --body-file "$RUNNER_TEMP/comment.md"
 
@@ -96,6 +109,11 @@ jobs:
         run: |
           metal/tofu/run.sh init -input=false -no-color
           metal/tofu/run.sh apply -input=false -no-color -auto-approve
+
+      - name: ansible guests
+        run: |
+          cd metal/ansible && export ANSIBLE_CONFIG=$PWD/ansible.cfg
+          ansible-playbook playbooks/guests.yml --diff
 
       - name: Commit tofu state
         if: always()   # a partial apply still changed real resources: keep its state

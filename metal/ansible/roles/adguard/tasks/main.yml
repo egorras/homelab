@@ -1,0 +1,49 @@
+- name: Download AdGuard Home
+  ansible.builtin.get_url:
+    url: https://github.com/AdguardTeam/AdGuardHome/releases/download/{{ adguard_version }}/AdGuardHome_linux_amd64.tar.gz
+    dest: /root/AdGuardHome-{{ adguard_version }}.tar.gz
+    checksum: "{{ adguard_checksum }}"
+    mode: "0644"
+  register: adguard_download
+
+- name: Install AdGuard Home binary
+  ansible.builtin.unarchive:
+    src: "{{ adguard_download.dest }}"
+    dest: /opt
+    remote_src: true
+    include: [./AdGuardHome/AdGuardHome]
+  notify: Restart AdGuard Home
+
+- name: AdGuard Home config
+  ansible.builtin.template:
+    src: AdGuardHome.yaml.j2
+    dest: "{{ adguard_dir }}/AdGuardHome.yaml"
+    mode: "0600"
+  no_log: true   # contains the UI password hash; the diff would print it
+  notify: Restart AdGuard Home
+
+- name: AdGuard Home service
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/AdGuardHome.service
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=AdGuard Home
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      ExecStart={{ adguard_dir }}/AdGuardHome --work-dir {{ adguard_dir }} --no-check-update
+      Restart=always
+      RestartSec=5
+
+      [Install]
+      WantedBy=multi-user.target
+  notify: Restart AdGuard Home
+
+- name: Enable AdGuard Home
+  ansible.builtin.systemd_service:
+    name: AdGuardHome
+    enabled: true
+    state: started
+    daemon_reload: true

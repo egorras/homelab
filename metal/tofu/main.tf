@@ -10,7 +10,16 @@ variable "state_passphrase" {
   sensitive   = true
 }
 
-# Every guest lands in this pool; also the first resource that proves plan/apply end to end (M2).
+locals {
+  # Guests, keys and versions are defined once, for Ansible and tofu alike.
+  lab  = yamldecode(file("${path.module}/../ansible/inventory/group_vars/all.yml"))
+  node = "pve"
+
+  gateway     = local.lab.lan_gateway
+  nameservers = [local.lab.lan_gateway] # the router, not AdGuard: guests must resolve while AdGuard is down
+}
+
+# Every guest lands in this pool.
 resource "proxmox_virtual_environment_pool" "homelab" {
   pool_id = "homelab"
   comment = "Managed by OpenTofu (egorras/homelab)"

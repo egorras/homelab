@@ -1,0 +1,22 @@
+# Container settings only root@pam may set (bind mounts, devices), so tofu can't: applied here over SSH instead.
+# Run from playbooks/guests.yml, after tofu has created the containers.
+- name: Read container configs
+  ansible.builtin.command: pct config {{ item.vmid }}
+  register: pve_host_lxc_config
+  loop: "{{ pve_host_lxc_passthrough }}"
+  loop_control:
+    label: "{{ item.vmid }}"
+  changed_when: false
+  failed_when: pve_host_lxc_config.rc != 0 and not ansible_check_mode   # in a PR plan the container may not exist yet
+  check_mode: false  # read-only; later tasks need its output in --check
+
+- name: Set passthrough options
+  ansible.builtin.command: pct set {{ item.0.vmid }} -{{ item.1.key }} {{ item.1.value | quote }}
+  loop: "{{ pve_host_lxc_passthrough | subelements('options') }}"
+  loop_control:
+    label: "{{ item.0.vmid }} {{ item.1.key }}"
+  when: >-
+    (item.1.key ~ ': ' ~ item.1.value) not in
+    (pve_host_lxc_config.results | selectattr('item.vmid', '==', item.0.vmid) | first).stdout_lines
+  changed_when: true
+  notify: Reboot containers with new passthrough

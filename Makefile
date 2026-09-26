@@ -26,6 +26,7 @@ check: ## Dry run everything CI would apply: ansible --check --diff + tofu plan
 	$(ANSIBLE) ansible-playbook playbooks/pve.yml --check --diff
 	$(TOFU) init -input=false
 	$(TOFU) plan -input=false
+	$(ANSIBLE) ansible-playbook playbooks/guests.yml --check --diff
 
 plan: ## tofu plan only
 	$(TOFU) init -input=false
@@ -36,6 +37,7 @@ apply: ## Apply ansible + tofu (CI does this on merge to main; never run it whil
 	$(ANSIBLE) ansible-playbook playbooks/pve.yml
 	$(TOFU) init -input=false
 	$(TOFU) apply -input=false -auto-approve
+	$(ANSIBLE) ansible-playbook playbooks/guests.yml
 
 secrets: ## Edit metal/secrets.sops.yaml in $$EDITOR
 	mise exec -- sops metal/secrets.sops.yaml

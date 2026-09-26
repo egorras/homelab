@@ -1,0 +1,55 @@
+# Media comes from the host HDD (read-only bind mount at /data/media) and Quick Sync from /dev/dri/renderD128;
+# both are attached by pve_host/lxc_passthrough.yml. Library/users live in /var/lib/jellyfin (nightly vzdump).
+- name: Debian repositories with non-free (Intel media driver)
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/debian.sources
+    mode: "0644"
+    content: |
+      Types: deb
+      URIs: http://deb.debian.org/debian
+      Suites: trixie trixie-updates
+      Components: main contrib non-free non-free-firmware
+      Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+      Types: deb
+      URIs: http://security.debian.org/debian-security
+      Suites: trixie-security
+      Components: main contrib non-free non-free-firmware
+      Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+- name: Jellyfin apt key
+  ansible.builtin.get_url:
+    url: https://repo.jellyfin.org/jellyfin_team.gpg.key
+    dest: /etc/apt/keyrings/jellyfin.asc
+    mode: "0644"
+    checksum: "{{ jellyfin_key_checksum }}"
+
+- name: Jellyfin apt repository
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/jellyfin.sources
+    mode: "0644"
+    content: |
+      Types: deb
+      URIs: https://repo.jellyfin.org/debian
+      Suites: trixie
+      Components: main
+      Architectures: amd64
+      Signed-By: /etc/apt/keyrings/jellyfin.asc
+
+- name: Install Jellyfin and the Intel media driver
+  ansible.builtin.apt:
+    name: [jellyfin, intel-media-va-driver-non-free]
+    update_cache: true
+
+- name: Jellyfin may use the iGPU
+  ansible.builtin.user:
+    name: jellyfin
+    groups: [video]
+    append: true
+  notify: Restart Jellyfin
+
+- name: Enable Jellyfin
+  ansible.builtin.systemd_service:
+    name: jellyfin
+    enabled: true
+    state: started

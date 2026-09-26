@@ -23,7 +23,7 @@ Any manual step found along the way becomes code or a runbook.
 - [x] **M1 — Proxmox from code**: `answer.toml` auto-install on NVMe (HDD untouched); Ansible `pve_host` — repos,
   NIC offload fix + watchdog, HDD mount + backup storage/job, sensors + node-exporter, Tailscale on host,
   `tofu@pve` token, CI SSH key. ✅ second run = 0 changed; host reachable over Tailscale.
-- [ ] **M2 — infra pipeline**: tailnet ACL + OAuth, `infra.yml`, tofu state encryption. ✅ PR shows plan, merge applies.
+- [x] **M2 — infra pipeline**: tailnet ACL + OAuth, `infra.yml`, tofu state encryption. ✅ PR shows plan, merge applies.
 - [ ] **M3 — guests**: k3s VM (Debian cloud-init, 4c/12 GB), AdGuard LXC, Jellyfin LXC (`/dev/dri`), HAOS VM.
   ✅ `tofu plan` clean; DNS, Jellyfin, HA respond.
 - [ ] **M4 — k3s + Flux**: k3s via Ansible, `flux bootstrap`, SOPS decryption, cert-manager wildcard

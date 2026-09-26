@@ -40,3 +40,9 @@ pve_host_tofu_privs:
   - VM.PowerMgmt
 
 pve_host_tailscale_tags: tag:pve
+
+# sha256 of haos_ova-<haos_version>.qcow2.xz (GitHub release asset digest); bump together with haos_version.
+pve_host_haos_checksum: sha256:fae6a728768cc10aff60d4820bfcd40d64cd77fab82c8bd92af13b3d9d414090
+
+# Per-container options tofu can't set (root@pam only); `pct config` spelling. See tasks/lxc_passthrough.yml.
+pve_host_lxc_passthrough: []
