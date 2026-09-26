@@ -33,3 +33,18 @@
       when: not ansible_check_mode   # a PR plan reports not-yet-created guests as unreachable instead
   roles:
     - jellyfin
+
+- name: K3s + Flux
+  hosts: k3s
+  gather_facts: false
+  pre_tasks:
+    - name: Wait for SSH (fresh VM)
+      ansible.builtin.wait_for_connection:
+        timeout: 300
+      when: not ansible_check_mode
+    - name: Load secrets
+      community.sops.load_vars:
+        file: "{{ secrets_file }}"
+      no_log: true
+  roles:
+    - k3s

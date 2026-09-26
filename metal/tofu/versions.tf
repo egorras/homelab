@@ -6,6 +6,10 @@ terraform {
       source  = "bpg/proxmox"
       version = "0.114.0"
     }
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "5.26.0"
+    }
   }
 
   # State and plans are committed to git, encrypted (docs/adr/0004).

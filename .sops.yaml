@@ -1,7 +1,11 @@
-# Single age recipient (private key: password manager + offline copy, never in git).
+# Age recipients. Private keys: admin key in the password manager + offline copy (never in git);
+# the k3s cluster key is k3s_sops_age_key in metal/secrets.sops.yaml, handed to Flux by the k3s Ansible role.
 creation_rules:
+  # Cluster secrets: admin + cluster key, so a compromised cluster can't read metal/ secrets.
   - path_regex: kubernetes/.*\.sops\.ya?ml$
     encrypted_regex: ^(data|stringData)$
-    age: age14uzygqz0hgepvwphdrsualggykr8wpesulf29vphwzhr6ttxafhqmsjpgs
+    age: >-
+      age14uzygqz0hgepvwphdrsualggykr8wpesulf29vphwzhr6ttxafhqmsjpgs,
+      age1pme5neke5tpnfllq03gmp7595ldn3azkaw8qna557t0r94f604lsg2yluv
   - path_regex: .*\.sops\.(ya?ml|json|env)$
     age: age14uzygqz0hgepvwphdrsualggykr8wpesulf29vphwzhr6ttxafhqmsjpgs
