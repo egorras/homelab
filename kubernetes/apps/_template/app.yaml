@@ -1,0 +1,85 @@
+# App template: copy kubernetes/apps/_template to kubernetes/apps/<name>, replace every `APP` / `IMAGE:TAG` /
+# `PORT`, add `- <name>` to kubernetes/apps/kustomization.yaml, open a PR. Runbook: docs/runbooks/new-app.md.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: APP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: APP
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate # single node + ReadWriteOnce volumes: never run two copies
+  selector:
+    matchLabels:
+      app: APP
+  template:
+    metadata:
+      labels:
+        app: APP
+    spec:
+      containers:
+        - name: APP
+          image: IMAGE:TAG # pin a version; Renovate bumps it
+          ports:
+            - name: http
+              containerPort: PORT
+          readinessProbe: # no traffic until the app answers (avoids 502/504 during rollouts)
+            httpGet:
+              path: /
+              port: http
+          resources:
+            requests: {cpu: 10m, memory: 64Mi}
+            limits: {memory: 256Mi}
+          # Data that must survive restarts: uncomment with the PVC below.
+          # volumeMounts:
+          #   - name: data
+          #     mountPath: /data
+      # volumes:
+      #   - name: data
+      #     persistentVolumeClaim:
+      #       claimName: APP-data
+---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: APP-data
+# spec:
+#   accessModes: [ReadWriteOnce]
+#   resources:
+#     requests:
+#       storage: 1Gi
+# ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: APP
+spec:
+  selector:
+    app: APP
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: APP
+spec:
+  rules:
+    - host: APP.lab.egorras.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: APP
+                port:
+                  name: http
+  tls:
+    - hosts: [APP.lab.egorras.net] # wildcard certificate from Traefik's default TLS store

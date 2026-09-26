@@ -1,0 +1,139 @@
+# Homelable (github.com/Pouzor/homelable): network diagram of the lab with live status. https://map.lab.egorras.net
+# Login: admin / password in secret.sops.yaml (admin-password; the app gets only the bcrypt hash).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: homelable
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: homelable-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homelable-backend
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: homelable-backend
+  template:
+    metadata:
+      labels:
+        app: homelable-backend
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/pouzor/homelable-backend:3.5.1
+          env:
+            - {name: SQLITE_PATH, value: /app/data/homelab.db}
+            - {name: CORS_ORIGINS, value: '["https://map.lab.egorras.net"]'}
+            - {name: AUTH_MODE, value: local}
+            - {name: AUTH_USERNAME, value: admin}
+            - name: AUTH_PASSWORD_HASH
+              valueFrom: {secretKeyRef: {name: homelable, key: admin-password-hash}}
+            - name: SECRET_KEY
+              valueFrom: {secretKeyRef: {name: homelable, key: secret-key}}
+          ports:
+            - name: http
+              containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: http
+          securityContext:
+            capabilities:
+              add: [NET_RAW] # ping-based status checks
+          resources:
+            requests: {cpu: 20m, memory: 128Mi}
+            limits: {memory: 512Mi}
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: homelable-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: homelable-backend
+spec:
+  selector:
+    app: homelable-backend
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homelable-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: homelable-frontend
+  template:
+    metadata:
+      labels:
+        app: homelable-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: ghcr.io/pouzor/homelable-frontend:3.5.1
+          env:
+            - name: BACKEND_UPSTREAM # nginx proxies /api and /ws here
+              value: homelable-backend:8000
+          ports:
+            - name: http
+              containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            requests: {cpu: 5m, memory: 16Mi}
+            limits: {memory: 64Mi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: homelable-frontend
+spec:
+  selector:
+    app: homelable-frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: homelable
+spec:
+  rules:
+    - host: map.lab.egorras.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: homelable-frontend
+                port:
+                  name: http
+  tls:
+    - hosts: [map.lab.egorras.net]
