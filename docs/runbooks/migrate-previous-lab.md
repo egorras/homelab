@@ -9,7 +9,7 @@ Tofu and Ansible build the guests; this moves the *data* of the old ones in. Old
 | 104 jellyfin | 103 jellyfin | copy `/var/lib/jellyfin` + `/etc/jellyfin` into the new LXC |
 | 102 adguard | 102 adguard | config codified in `roles/adguard` (UI password hash → `adguard_password_hash` in secrets) |
 | 103 tailscale | host | replaced by Tailscale on the Proxmox host (docs/adr/0003) |
-| 101 docker | k3s | Immich: `/mnt/hdd/photos` as is (virtiofs → k3s VM `/mnt/photos`), DB from its own dump in `photos/backups`, thumbnails regenerated ([immich.md](immich.md)). Media stack later (`/mnt/hdd/media`) |
+| 101 docker | k3s | Immich: started empty and re-uploaded from the phone (2026-09-26). The old library + DB dumps are parked in `/mnt/hdd/photos-old` until that finishes; restore steps kept in [immich.md](immich.md). Media stack later (`/mnt/hdd/media`) |
 
 ## Jellyfin
 Same uid/gid (102/105) in old and new container, so a numeric-owner copy keeps permissions.
