@@ -21,6 +21,9 @@ spec:
       containers:
         - name: whoami
           image: traefik/whoami:v1.12.0
+          env:
+            - name: WHOAMI_NAME
+              value: homelab
           ports:
             - containerPort: 80
           resources:
