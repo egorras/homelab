@@ -1,0 +1,70 @@
+# Headlamp: Kubernetes web UI at https://k8s.lab.egorras.net (runbook: docs/runbooks/headlamp.md).
+# Login is a ServiceAccount token (below), read with kubectl, never stored in git.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: headlamp
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: headlamp
+spec:
+  interval: 12h
+  url: https://kubernetes-sigs.github.io/headlamp/
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: headlamp
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: headlamp
+      version: 0.45.0
+      sourceRef:
+        kind: HelmRepository
+        name: headlamp
+  values:
+    fullnameOverride: headlamp
+    ingress:
+      enabled: true
+      hosts:
+        - host: k8s.lab.egorras.net
+          paths:
+            - path: /
+              type: Prefix
+      tls:
+        - hosts: [k8s.lab.egorras.net] # wildcard certificate (Traefik default TLS store)
+    resources:
+      requests: {cpu: 10m, memory: 32Mi}
+      limits: {memory: 128Mi}
+---
+# The login identity: a separate ServiceAccount with a long-lived token.
+# Single-admin lab, so cluster-admin; rotate by deleting the Secret (Flux recreates it with a new token).
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: headlamp-admin
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: headlamp-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: headlamp-admin
+    namespace: headlamp
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: headlamp-admin-token
+  annotations:
+    kubernetes.io/service-account.name: headlamp-admin
+type: kubernetes.io/service-account-token

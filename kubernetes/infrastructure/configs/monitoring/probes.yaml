@@ -16,6 +16,7 @@ spec:
         - https://grafana.lab.egorras.net/api/health
         - https://home.lab.egorras.net/api/healthcheck
         - https://map.lab.egorras.net
+        - https://k8s.lab.egorras.net
         - https://pve.lab.egorras.net # Traefik -> Proxmox (ServersTransport)
         - http://192.168.0.241/ # AdGuard UI
         - http://192.168.0.242:8096/health # Jellyfin
