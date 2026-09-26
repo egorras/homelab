@@ -1,0 +1,292 @@
+# Immich (immich.app): photos and videos. https://photos.lab.egorras.net
+# Storage: originals, encoded video and nightly DB dumps on the HDD (host /mnt/hdd/photos, virtiofs -> VM
+# /mnt/photos -> /data); Postgres, thumbnails and ML models on the VM disk (NVMe). Restore/upgrade:
+# docs/runbooks/immich.md. Upgrades: read the release notes first, breaking changes are common.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: immich
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-postgres
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled # removing the app from git must not delete the database
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-thumbs
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-model-cache
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: immich-postgres
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: immich-postgres
+  template:
+    metadata:
+      labels:
+        app: immich-postgres
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: postgres
+          # Immich's build: Postgres 14 + VectorChord. The major version must match the dump being restored.
+          image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23
+          env:
+            - {name: POSTGRES_USER, value: postgres}
+            - {name: POSTGRES_DB, value: immich}
+            - {name: POSTGRES_INITDB_ARGS, value: --data-checksums}
+            - name: POSTGRES_PASSWORD
+              valueFrom: {secretKeyRef: {name: immich, key: db-password}}
+          ports:
+            - name: postgres
+              containerPort: 5432
+          readinessProbe:
+            exec:
+              command: [pg_isready, -U, postgres, -d, immich]
+          resources:
+            requests: {cpu: 50m, memory: 256Mi}
+            limits: {memory: 2Gi}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: immich-postgres
+        - name: shm # parallel queries need more than the container default of 64Mi
+          emptyDir:
+            medium: Memory
+            sizeLimit: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich-postgres
+spec:
+  selector:
+    app: immich-postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: immich-valkey
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: immich-valkey
+  template:
+    metadata:
+      labels:
+        app: immich-valkey
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: valkey # job queue only; nothing here needs to survive a restart
+          image: docker.io/valkey/valkey:9@sha256:70739f85ad2ee01a726a965584a0f94895f01b0c60b3cc8b0aeef11eaa6888cf
+          ports:
+            - name: redis
+              containerPort: 6379
+          readinessProbe:
+            exec:
+              command: [valkey-cli, ping]
+          resources:
+            requests: {cpu: 10m, memory: 32Mi}
+            limits: {memory: 256Mi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich-valkey
+spec:
+  selector:
+    app: immich-valkey
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: redis
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: immich-server
+spec:
+  replicas: 0 # 1 once the database is restored (docs/runbooks/immich.md)
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: immich-server
+  template:
+    metadata:
+      labels:
+        app: immich-server
+    spec:
+      enableServiceLinks: false # injected IMMICH_* service variables would collide with Immich's own settings
+      initContainers:
+        # Immich refuses to start when a folder it has used lacks its .immich marker. The HDD folders keep
+        # theirs; thumbnails live on a fresh volume after a restore and are regenerated, so mark it here.
+        - name: thumbs-marker
+          image: ghcr.io/immich-app/immich-server:v3.2.2
+          command: [sh, -c, "test -e /thumbs/.immich || date +%s000 > /thumbs/.immich"]
+          volumeMounts:
+            - name: thumbs
+              mountPath: /thumbs
+      containers:
+        - name: server
+          image: ghcr.io/immich-app/immich-server:v3.2.2
+          env:
+            - {name: TZ, value: Europe/Berlin}
+            - {name: DB_HOSTNAME, value: immich-postgres}
+            - {name: DB_USERNAME, value: postgres}
+            - {name: DB_DATABASE_NAME, value: immich}
+            - name: DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: immich, key: db-password}}
+            - {name: REDIS_HOSTNAME, value: immich-valkey}
+            - {name: IMMICH_MACHINE_LEARNING_URL, value: "http://immich-machine-learning:3003"}
+          ports:
+            - name: http
+              containerPort: 2283
+          readinessProbe:
+            httpGet:
+              path: /api/server/ping
+              port: http
+          startupProbe: # first start runs migrations
+            httpGet:
+              path: /api/server/ping
+              port: http
+            periodSeconds: 10
+            failureThreshold: 60
+          resources:
+            requests: {cpu: 100m, memory: 512Mi}
+            # 1.5 CPUs as in the old lab: full-speed imports pushed the i5-8500 to 87 °C.
+            limits: {cpu: 1500m, memory: 3Gi}
+          volumeMounts:
+            - name: photos
+              mountPath: /data
+            - name: thumbs
+              mountPath: /data/thumbs
+      volumes:
+        - name: photos
+          hostPath:
+            path: /mnt/photos # every subfolder carries an .immich marker: an unmounted share stops Immich
+            type: Directory
+        - name: thumbs
+          persistentVolumeClaim:
+            claimName: immich-thumbs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich-server
+spec:
+  selector:
+    app: immich-server
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: immich-machine-learning
+spec:
+  replicas: 0 # 1 together with immich-server
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: immich-machine-learning
+  template:
+    metadata:
+      labels:
+        app: immich-machine-learning
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: machine-learning
+          image: ghcr.io/immich-app/immich-machine-learning:v3.2.2 # CPU only: the iGPU belongs to Jellyfin
+          ports:
+            - name: http
+              containerPort: 3003
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: http
+          resources:
+            requests: {cpu: 100m, memory: 512Mi}
+            limits: {cpu: 1500m, memory: 4Gi}
+          volumeMounts:
+            - name: cache
+              mountPath: /cache
+      volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: immich-model-cache
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich-machine-learning
+spec:
+  selector:
+    app: immich-machine-learning
+  ports:
+    - name: http
+      port: 3003
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: immich
+spec:
+  rules:
+    - host: photos.lab.egorras.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: immich-server
+                port:
+                  name: http
+  tls:
+    - hosts: [photos.lab.egorras.net]

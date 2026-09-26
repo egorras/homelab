@@ -5,6 +5,7 @@
   "flux": { "managerFilePatterns": ["/^kubernetes/.+\.ya?ml$/"] },
   "kubernetes": { "managerFilePatterns": ["/^kubernetes/.+\.ya?ml$/"] },
   "packageRules": [
-    { "matchUpdateTypes": ["patch", "digest"], "matchManagers": ["github-actions", "pre-commit", "mise"], "automerge": true }
+    { "matchUpdateTypes": ["patch", "digest"], "matchManagers": ["github-actions", "pre-commit", "mise"], "automerge": true },
+    { "matchPackageNames": ["ghcr.io/immich-app/immich-server", "ghcr.io/immich-app/immich-machine-learning"], "groupName": "immich" }
   ]
 }

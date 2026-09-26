@@ -5,4 +5,5 @@ resources:
   - cluster-issuer.yaml
   - wildcard-certificate.yaml
   - coredns-custom.yaml
+  - traefik-config.yaml
   - monitoring
