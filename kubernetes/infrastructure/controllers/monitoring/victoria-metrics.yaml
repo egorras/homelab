@@ -37,6 +37,41 @@ spec:
     defaultRules:
       groups:
         etcd: {enabled: false}
+        # Built on the histogram buckets dropped below (API server SLOs, kubelet PLEG quantiles).
+        kube-apiserver-burnrate.rules: {enabled: false}
+        kube-apiserver-histogram.rules: {enabled: false}
+        kube-apiserver-slos: {enabled: false}
+        kubelet.rules: {enabled: false}
+
+    # k3s serves every component's metrics (apiserver, scheduler, kubelet, etcd shim) on both endpoints below:
+    # ~73k of ~115k series were latency-histogram buckets meant for big clusters' SLO dashboards. Drop the
+    # buckets, keep the counters (request/error rates still work). Lists replace the chart's, so they're restated.
+    kubeApiServer:
+      vmScrape:
+        spec:
+          endpoints:
+            - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+              port: https
+              scheme: https
+              tlsConfig:
+                caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+                serverName: kubernetes
+              metricRelabelConfigs:
+                - action: drop
+                  sourceLabels: [__name__]
+                  regex: .+_bucket
+    kubelet:
+      vmScrapes:
+        kubelet: # the /metrics path only; cadvisor/probes/resource keep the chart's defaults
+          spec:
+            metricRelabelConfigs:
+              - action: labeldrop
+                regex: (uid)
+              - action: labeldrop
+                regex: (id|name)
+              - action: drop
+                sourceLabels: [__name__]
+                regex: .+_bucket|rest_client_request_duration_seconds_(sum|count)
 
     vmsingle:
       spec:
