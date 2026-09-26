@@ -76,6 +76,11 @@ spec:
     vmsingle:
       spec:
         retentionPeriod: 90d
+        # Without a limit VictoriaMetrics sizes its caches to 60% of the node's RAM; the limit keeps room for apps
+        # (~46k series need far less).
+        resources:
+          requests: {cpu: 50m, memory: 256Mi}
+          limits: {memory: 1Gi}
         storage:
           resources:
             requests:
