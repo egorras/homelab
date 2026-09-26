@@ -1,5 +1,7 @@
 # templates/AdGuardHome.yaml.j2 is the whole config, kept exactly as AdGuard writes it (so re-runs report no change).
 # Change settings in git, not in the UI: the next apply overwrites UI edits.
+# Resilience: cache_optimistic serves expired answers while upstreams are unreachable (internet blips), and
+# fallback_dns (plain 1.1.1.1/9.9.9.9) answers when the DoH upstreams fail.
 adguard_version: v0.107.79
 adguard_checksum: sha256:c48f4a43000665484c5ec28177de11a004759b620dae8f77b2aabefc9ef3687f   # release checksums.txt
 adguard_dir: /opt/AdGuardHome
