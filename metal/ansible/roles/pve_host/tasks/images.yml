@@ -1,0 +1,23 @@
+# HAOS ships only as .qcow2.xz, which the tofu provider can't decompress: stage it as an `import` image here,
+# tofu imports it from local:import/ (metal/tofu/haos.tf).
+- name: HAOS image
+  vars:
+    pve_host_haos_image: /var/lib/vz/import/haos_ova-{{ haos_version }}.qcow2
+  block:
+    - name: Check HAOS image
+      ansible.builtin.stat:
+        path: "{{ pve_host_haos_image }}"
+      register: pve_host_haos_stat
+
+    - name: Download HAOS image
+      ansible.builtin.get_url:
+        url: https://github.com/home-assistant/operating-system/releases/download/{{ haos_version }}/haos_ova-{{ haos_version }}.qcow2.xz
+        dest: "{{ pve_host_haos_image }}.xz"
+        checksum: "{{ pve_host_haos_checksum }}"
+        mode: "0644"
+      when: not pve_host_haos_stat.stat.exists
+
+    - name: Decompress HAOS image
+      ansible.builtin.command: xz --decompress {{ pve_host_haos_image }}.xz
+      args:
+        creates: "{{ pve_host_haos_image }}"

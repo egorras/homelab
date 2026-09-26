@@ -1,0 +1,35 @@
+# Runs after `tofu apply` has created the guests (CI order: pve.yml → tofu → guests.yml).
+- name: Guest options tofu can't set
+  hosts: proxmox
+  tasks:
+    - name: LXC bind mounts and devices
+      ansible.builtin.include_role:
+        name: pve_host
+        tasks_from: lxc_passthrough.yml
+        handlers_from: main.yml
+
+- name: AdGuard Home
+  hosts: adguard
+  gather_facts: false
+  pre_tasks:
+    - name: Wait for SSH (fresh containers)
+      ansible.builtin.wait_for_connection:
+        timeout: 120
+      when: not ansible_check_mode   # a PR plan reports not-yet-created guests as unreachable instead
+    - name: Load secrets
+      community.sops.load_vars:
+        file: "{{ secrets_file }}"
+      no_log: true
+  roles:
+    - adguard
+
+- name: Jellyfin
+  hosts: jellyfin
+  gather_facts: false
+  pre_tasks:
+    - name: Wait for SSH (fresh containers)
+      ansible.builtin.wait_for_connection:
+        timeout: 120
+      when: not ansible_check_mode   # a PR plan reports not-yet-created guests as unreachable instead
+  roles:
+    - jellyfin

@@ -1,0 +1,9 @@
+# templates/AdGuardHome.yaml.j2 is the whole config, kept exactly as AdGuard writes it (so re-runs report no change).
+# Change settings in git, not in the UI: the next apply overwrites UI edits.
+adguard_version: v0.107.79
+adguard_checksum: sha256:c48f4a43000665484c5ec28177de11a004759b620dae8f77b2aabefc9ef3687f   # release checksums.txt
+adguard_dir: /opt/AdGuardHome
+
+# Split DNS: lab hostnames resolve to the k3s ingress.
+adguard_rewrite_domains: [lab.egorras.net, "*.lab.egorras.net"]
+adguard_rewrite_target: "{{ guests.k3s.ip }}"

@@ -1,2 +1,7 @@
 pve_host_nic: eno1
 pve_host_hdd_uuid: 0c9d7c5a-c2b1-40eb-abed-2217f3d7cd24
+pve_host_lxc_passthrough:
+  - vmid: "{{ guests.jellyfin.vmid }}"
+    options:
+      - {key: mp0, value: "/mnt/hdd/media/data/media,mp=/data/media,ro=1"}
+      - {key: dev0, value: "/dev/dri/renderD128,gid=44"}   # gid 44 = video inside the container (Quick Sync)
