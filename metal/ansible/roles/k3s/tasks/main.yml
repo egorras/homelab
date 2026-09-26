@@ -1,3 +1,13 @@
+# Immich originals on the HDD (virtiofs tag "photos"). nofail: a missing share must not block boot; Immich's
+# .immich folder markers stop it from writing to an unmounted, empty directory.
+- name: Mount photos share
+  ansible.posix.mount:
+    path: "{{ k3s_photos_mountpoint }}"
+    src: photos
+    fstype: virtiofs
+    opts: defaults,nofail
+    state: mounted
+
 - name: Install k3s binary
   ansible.builtin.get_url:
     url: https://github.com/k3s-io/k3s/releases/download/{{ k3s_version | urlencode }}/k3s

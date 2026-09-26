@@ -11,3 +11,6 @@ k3s_flux_repo: https://github.com/egorras/homelab
 k3s_flux_path: ./kubernetes/clusters/home
 
 k3s_manifests: /var/lib/rancher/k3s/server/manifests
+
+# Host /mnt/hdd/photos, shared into this VM over virtiofs (tofu: proxmox_virtual_environment_hardware_mapping_dir.photos).
+k3s_photos_mountpoint: /mnt/photos

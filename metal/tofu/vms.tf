@@ -1,3 +1,15 @@
+# Host directory (created by Ansible pve_host on the HDD) that the k3s VM mounts as virtiofs tag "photos".
+resource "proxmox_virtual_environment_hardware_mapping_dir" "photos" {
+  name    = "photos"
+  comment = "Immich library (HDD). Managed by OpenTofu."
+  map = [
+    {
+      node = local.node
+      path = "/mnt/hdd/photos"
+    },
+  ]
+}
+
 resource "proxmox_virtual_environment_vm" "k3s" {
   name        = "k3s"
   description = "k3s: all apps, reconciled by Flux. Managed by OpenTofu."
@@ -43,6 +55,12 @@ resource "proxmox_virtual_environment_vm" "k3s" {
   }
 
   serial_device {} # Debian cloud images log to the serial console
+
+  # Immich originals stay on the HDD; vzdump doesn't include virtiofs shares, so they aren't copied into
+  # the nightly VM backup (their off-site copy is a separate job).
+  virtiofs {
+    mapping = proxmox_virtual_environment_hardware_mapping_dir.photos.name
+  }
 
   operating_system {
     type = "l26"
