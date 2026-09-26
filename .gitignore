@@ -9,6 +9,7 @@ keys.txt
 # opentofu (encrypted state IS committed; see docs/adr/0004)
 .terraform/
 *.tfplan
+*.tfstate.backup
 crash.log
 
 # kube / ansible local artifacts

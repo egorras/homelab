@@ -1,0 +1,17 @@
+# API token comes from PROXMOX_VE_API_TOKEN (set by run.sh from metal/secrets.sops.yaml).
+provider "proxmox" {
+  endpoint = "https://192.168.0.18:8006/"
+  insecure = true # self-signed; reached over the tailnet only
+}
+
+variable "state_passphrase" {
+  description = "State encryption passphrase (tofu_state_passphrase in metal/secrets.sops.yaml)."
+  type        = string
+  sensitive   = true
+}
+
+# Every guest lands in this pool; also the first resource that proves plan/apply end to end (M2).
+resource "proxmox_virtual_environment_pool" "homelab" {
+  pool_id = "homelab"
+  comment = "Managed by OpenTofu (egorras/homelab)"
+}

@@ -1,0 +1,30 @@
+// Tailnet policy: source of truth. Applied by hand: admin console → Access controls → paste (docs/runbooks/ci-access.md).
+// Deliberately not applied by CI: CI's OAuth client can only mint ephemeral tag:ci keys, never rewrite this (docs/adr/0003).
+{
+	"tagOwners": {
+		"tag:pve": ["autogroup:admin"], // Proxmox host, subnet router for the LAN
+		"tag:ci":  ["autogroup:admin"], // ephemeral GitHub Actions runners
+	},
+
+	"autoApprovers": {
+		"routes": {"192.168.0.0/24": ["tag:pve"]},
+	},
+
+	"grants": [
+		// People and their devices (PC, laptop, phone, VPS): everything, including the LAN via pve.
+		{"src": ["autogroup:member"], "dst": ["*"], "ip": ["*"]},
+
+		// CI: only what deploys need. Proxmox API, SSH to the host and guests. VPS :22 comes with M6.
+		{"src": ["tag:ci"], "dst": ["192.168.0.18/32"], "ip": ["tcp:8006"]},
+		{"src": ["tag:ci"], "dst": ["192.168.0.0/24"], "ip": ["tcp:22"]},
+	],
+
+	"ssh": [
+		{
+			"action": "check",
+			"src":    ["autogroup:member"],
+			"dst":    ["autogroup:self"],
+			"users":  ["autogroup:nonroot", "root"],
+		},
+	],
+}

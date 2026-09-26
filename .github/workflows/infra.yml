@@ -1,0 +1,110 @@
+name: infra
+# PR: ansible --check --diff + tofu plan, posted as a PR comment. Merge to main: apply, then commit tofu state back.
+on:
+  pull_request:
+    paths: [metal/**, .github/workflows/infra.yml, .github/actions/**, .mise.toml, Makefile]
+  push:
+    branches: [main]
+    paths: [metal/**, .github/workflows/infra.yml, .github/actions/**, .mise.toml, Makefile]
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+  ANSIBLE_NOCOLOR: "1"
+  TF_IN_AUTOMATION: "1"
+
+jobs:
+  plan:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository  # forks get no secrets
+    runs-on: ubuntu-latest
+    concurrency:
+      group: infra-plan-${{ github.head_ref }}
+      cancel-in-progress: true
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/lab-access
+        with:
+          ts-oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          ts-oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+
+      - name: ansible --check --diff
+        id: ansible
+        run: |
+          set -o pipefail
+          cd metal/ansible && export ANSIBLE_CONFIG=$PWD/ansible.cfg
+          ansible-galaxy collection install -r requirements.yml
+          ansible-playbook playbooks/pve.yml --check --diff | tee "$RUNNER_TEMP/ansible.txt"
+
+      - name: tofu plan
+        id: tofu
+        run: |
+          set -o pipefail
+          metal/tofu/run.sh init -input=false -no-color
+          metal/tofu/run.sh plan -input=false -no-color | tee "$RUNNER_TEMP/tofu.txt"
+
+      - name: Comment on PR
+        if: always() && (steps.ansible.outcome != 'skipped' || steps.tofu.outcome != 'skipped')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          ANSIBLE_OUTCOME: ${{ steps.ansible.outcome }}
+          TOFU_OUTCOME: ${{ steps.tofu.outcome }}
+        run: |
+          section() {  # title, outcome, file, lines to keep from the end
+            printf '<details><summary>%s — <b>%s</b></summary>\n\n```\n' "$1" "$2"
+            tail -n "$4" "$3" 2>/dev/null || echo "(no output)"
+            printf '```\n</details>\n\n'
+          }
+          {
+            echo "### infra plan for \`${HEAD_SHA::7}\`"
+            echo
+            grep -h -A1 'PLAY RECAP' "$RUNNER_TEMP/ansible.txt" 2>/dev/null | tail -1 | sed 's/^/ansible: `/; s/$/`/'
+            grep -hE '^(Plan:|No changes\.)' "$RUNNER_TEMP/tofu.txt" 2>/dev/null | sed 's/^/tofu: /'
+            echo
+            section "tofu plan" "$TOFU_OUTCOME" "$RUNNER_TEMP/tofu.txt" 300
+            section "ansible --check --diff" "$ANSIBLE_OUTCOME" "$RUNNER_TEMP/ansible.txt" 400
+          } > "$RUNNER_TEMP/comment.md"
+          gh pr comment "${{ github.event.pull_request.number }}" --edit-last --create-if-none --body-file "$RUNNER_TEMP/comment.md"
+
+  apply:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: homelab
+    concurrency:
+      group: infra-apply   # tofu state lives in git: applies must never overlap (docs/adr/0004)
+      cancel-in-progress: false
+    permissions:
+      contents: write   # commit tofu state back
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/lab-access
+        with:
+          ts-oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          ts-oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+
+      - name: ansible
+        run: |
+          cd metal/ansible && export ANSIBLE_CONFIG=$PWD/ansible.cfg
+          ansible-galaxy collection install -r requirements.yml
+          ansible-playbook playbooks/pve.yml --diff
+
+      - name: tofu apply
+        run: |
+          metal/tofu/run.sh init -input=false -no-color
+          metal/tofu/run.sh apply -input=false -no-color -auto-approve
+
+      - name: Commit tofu state
+        if: always()   # a partial apply still changed real resources: keep its state
+        run: |
+          [ -f metal/tofu/terraform.tfstate ] || exit 0
+          git add metal/tofu/terraform.tfstate
+          git diff --cached --quiet && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(tofu): update state [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
