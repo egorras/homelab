@@ -18,6 +18,7 @@ jobs:
   plan:
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository  # forks get no secrets
     runs-on: ubuntu-latest
+    timeout-minutes: 30   # fail a hung step instead of blocking the apply queue for 6 h
     concurrency:
       group: infra-plan-${{ github.head_ref }}
       cancel-in-progress: true
@@ -86,6 +87,7 @@ jobs:
   apply:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 30   # fail a hung step instead of blocking the apply queue for 6 h
     environment: homelab
     concurrency:
       group: infra-apply   # tofu state lives in git: applies must never overlap (docs/adr/0004)
