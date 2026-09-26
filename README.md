@@ -20,7 +20,7 @@ Oracle Cloud VPS (arm64) ── second Flux cluster: external monitoring, public
 
 ## Layout
 ```
-metal/        proxmox install, ansible roles, opentofu
+metal/        proxmox install, ansible roles, opentofu, tailnet policy
 kubernetes/   clusters/{home,oracle}, infrastructure, platform, apps
 docs/         adr/ (decisions), runbooks/
 ```

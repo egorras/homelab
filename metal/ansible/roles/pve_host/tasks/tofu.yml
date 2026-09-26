@@ -2,6 +2,7 @@
   ansible.builtin.command: pveum role list --output-format json
   register: pve_host_role_list
   changed_when: false
+  check_mode: false  # read-only; later tasks need its output in --check
 
 - name: Create or update TofuProvisioner role
   vars:
@@ -16,6 +17,7 @@
   ansible.builtin.command: pveum user list --output-format json
   register: pve_host_users
   changed_when: false
+  check_mode: false  # read-only; later tasks need its output in --check
 
 - name: Create tofu user
   ansible.builtin.command: pveum user add {{ pve_host_tofu_user }} --comment "OpenTofu (CI)"
@@ -30,6 +32,7 @@
   ansible.builtin.command: pveum user token list {{ pve_host_tofu_user }} --output-format json
   register: pve_host_tokens
   changed_when: false
+  check_mode: false  # read-only; later tasks need its output in --check
 
 - name: Remove token for rotation
   ansible.builtin.command: pveum user token remove {{ pve_host_tofu_user }} {{ pve_host_tofu_token_id }}

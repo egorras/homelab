@@ -3,6 +3,7 @@
   ansible.builtin.get_url:
     url: https://pkgs.tailscale.com/stable/debian/trixie.noarmor.gpg
     dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+    checksum: sha256:3e03dacf222698c60b8e2f990b809ca1b3e104de127767864284e6c228f1fb39  # also keeps --check at changed=0
     mode: "0644"
 
 - name: Tailscale apt repository
@@ -32,6 +33,7 @@
   ansible.builtin.command: tailscale status --json
   register: pve_host_ts_status
   changed_when: false
+  check_mode: false  # read-only; later tasks need its output in --check
   failed_when: false
 
 - name: Join tailnet

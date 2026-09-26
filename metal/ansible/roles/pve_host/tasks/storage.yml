@@ -21,6 +21,7 @@
   ansible.builtin.command: pvesh get /storage/hdd-backup
   register: pve_host_hdd_storage
   changed_when: false
+  check_mode: false  # read-only; later tasks need its output in --check
   failed_when: false
 
 - name: Add hdd-backup storage
@@ -34,6 +35,7 @@
   ansible.builtin.command: pvesh get /cluster/backup/nightly
   register: pve_host_backup_job
   changed_when: false
+  check_mode: false  # read-only; later tasks need its output in --check
   failed_when: false
 
 - name: Add nightly backup job (all guests)
