@@ -33,6 +33,9 @@ spec:
             httpGet:
               path: /api/healthcheck
               port: http
+              httpHeaders: # homepage rejects any Host not in HOMEPAGE_ALLOWED_HOSTS, including the pod IP
+                - name: Host
+                  value: home.lab.egorras.net
           resources:
             requests: {cpu: 10m, memory: 96Mi}
             limits: {memory: 256Mi}
