@@ -4,6 +4,10 @@
         href: https://jellyfin.lab.egorras.net
         icon: jellyfin.svg
         siteMonitor: http://192.168.0.242:8096/health
+    - Immich:
+        href: https://photos.lab.egorras.net
+        icon: immich.svg
+        siteMonitor: http://immich-server.immich.svc/api/server/ping
     - Home Assistant:
         href: http://192.168.0.59:8123
         icon: home-assistant.svg

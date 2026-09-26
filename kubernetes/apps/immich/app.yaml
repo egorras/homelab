@@ -146,7 +146,7 @@ kind: Deployment
 metadata:
   name: immich-server
 spec:
-  replicas: 0 # 1 once the database is restored (docs/runbooks/immich.md)
+  replicas: 1 # 0 while restoring the database (docs/runbooks/immich.md)
   strategy:
     type: Recreate
   selector:
@@ -227,7 +227,7 @@ kind: Deployment
 metadata:
   name: immich-machine-learning
 spec:
-  replicas: 0 # 1 together with immich-server
+  replicas: 1 # 0 together with immich-server
   strategy:
     type: Recreate
   selector:
