@@ -56,7 +56,7 @@ spec:
               add: [NET_RAW] # ping-based status checks
           resources:
             requests: {cpu: 20m, memory: 128Mi}
-            limits: {memory: 512Mi}
+            limits: {memory: 2Gi} # network scans run several nmap processes in parallel; 512Mi got OOMKilled
           volumeMounts:
             - name: data
               mountPath: /app/data
