@@ -1,0 +1,75 @@
+- name: Install k3s binary
+  ansible.builtin.get_url:
+    url: https://github.com/k3s-io/k3s/releases/download/{{ k3s_version | urlencode }}/k3s
+    dest: /usr/local/bin/k3s
+    checksum: "{{ k3s_checksum }}"
+    mode: "0755"
+  notify: Restart k3s
+
+- name: Link kubectl and crictl to k3s
+  ansible.builtin.file:
+    src: /usr/local/bin/k3s
+    dest: /usr/local/bin/{{ item }}
+    state: link
+    force: true   # k3s may not be downloaded yet in --check
+  loop: [kubectl, crictl]
+
+- name: K3s config directory
+  ansible.builtin.file:
+    path: /etc/rancher/k3s
+    state: directory
+    mode: "0755"
+
+- name: K3s config
+  ansible.builtin.copy:
+    dest: /etc/rancher/k3s/config.yaml
+    mode: "0600"
+    content: |
+      # Bundled Traefik is the ingress (80/443 on {{ ansible_host }}); certs come from cert-manager via Flux.
+      tls-san: [{{ ansible_host }}, k3s.lab.egorras.net]
+      secrets-encryption: true
+      write-kubeconfig-mode: "0600"
+  notify: Restart k3s
+
+- name: K3s service unit
+  ansible.builtin.template:
+    src: k3s.service.j2
+    dest: /etc/systemd/system/k3s.service
+    mode: "0644"
+  notify: Restart k3s
+
+- name: Enable k3s
+  ansible.builtin.systemd_service:
+    name: k3s
+    enabled: true
+    state: started
+    daemon_reload: true
+  ignore_errors: "{{ ansible_check_mode }}"   # --check on a fresh VM: the unit file isn't really written yet
+
+- name: Auto-deploy manifests directory
+  ansible.builtin.file:
+    path: "{{ k3s_manifests }}"
+    state: directory
+    mode: "0700"
+
+# k3s applies (and re-applies on change) everything in the manifests directory: Flux, its source, its key.
+- name: Flux components
+  ansible.builtin.get_url:
+    url: https://github.com/fluxcd/flux2/releases/download/{{ k3s_flux_version }}/install.yaml
+    dest: "{{ k3s_manifests }}/flux-install.yaml"
+    checksum: "{{ k3s_flux_checksum }}"
+    mode: "0600"
+  ignore_errors: "{{ ansible_check_mode }}"   # --check on a fresh VM: the directory doesn't exist yet
+
+- name: Flux sync (this repo)
+  ansible.builtin.template:
+    src: flux-sync.yaml.j2
+    dest: "{{ k3s_manifests }}/flux-sync.yaml"
+    mode: "0600"
+
+- name: Flux decryption key
+  ansible.builtin.template:
+    src: sops-age.yaml.j2
+    dest: "{{ k3s_manifests }}/flux-sops-age.yaml"
+    mode: "0600"
+  no_log: true

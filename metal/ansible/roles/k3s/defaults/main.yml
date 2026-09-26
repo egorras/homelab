@@ -1,0 +1,13 @@
+# Bump version + checksum together (release asset sha256sum-amd64.txt / install.yaml).
+k3s_version: v1.36.4+k3s1
+k3s_checksum: sha256:835873f37245fc615f547a2fe2af9402a347875f13fa64a1f136de644955ea3f
+
+# Flux is installed as a k3s auto-deploy manifest (not `flux bootstrap`): the repo is public, so Flux pulls it
+# anonymously over HTTPS and needs no deploy key or GitHub token. Flux upgrades = bump these two.
+k3s_flux_version: v2.9.5
+k3s_flux_checksum: sha256:cc3dcd743af16215838b6937e1fce83745bf24c0dcc6c59737c59df15429caaf
+
+k3s_flux_repo: https://github.com/egorras/homelab
+k3s_flux_path: ./kubernetes/clusters/home
+
+k3s_manifests: /var/lib/rancher/k3s/server/manifests

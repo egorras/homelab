@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help tools lint iso bootstrap check apply plan secrets
+.PHONY: help tools lint iso bootstrap check apply plan kubeconfig secrets
 ANSIBLE := cd metal/ansible && ANSIBLE_CONFIG=$$PWD/ansible.cfg mise exec --
 TOFU := mise exec -- metal/tofu/run.sh
 
@@ -38,6 +38,10 @@ apply: ## Apply ansible + tofu (CI does this on merge to main; never run it whil
 	$(TOFU) init -input=false
 	$(TOFU) apply -input=false -auto-approve
 	$(ANSIBLE) ansible-playbook playbooks/guests.yml
+
+kubeconfig: ## Fetch the k3s admin kubeconfig to ./kubeconfig (gitignored); then export KUBECONFIG=$$PWD/kubeconfig
+	ssh debian@192.168.0.240 sudo cat /etc/rancher/k3s/k3s.yaml | sed 's/127.0.0.1/192.168.0.240/' > kubeconfig
+	chmod 600 kubeconfig
 
 secrets: ## Edit metal/secrets.sops.yaml in $$EDITOR
 	mise exec -- sops metal/secrets.sops.yaml

@@ -21,7 +21,8 @@ resource "proxmox_virtual_environment_vm" "k3s" {
     dedicated = 12288
   }
 
-  # The guest agent isn't in the cloud image; the k3s Ansible role (M4) installs it and turns this on.
+  # No guest agent in the cloud image. Without it Proxmox shuts down via ACPI and backups are crash-consistent,
+  # fine for a node Flux rebuilds from git (docs/adr/0001). Turning it on later means a VM reboot.
   agent {
     enabled = false
   }

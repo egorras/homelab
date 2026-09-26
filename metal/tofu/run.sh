@@ -7,6 +7,8 @@ cd "$(dirname "$0")"
 secret() { sops decrypt --extract "[\"$1\"]" ../secrets.sops.yaml; }
 TF_VAR_state_passphrase="$(secret tofu_state_passphrase)"
 PROXMOX_VE_API_TOKEN="$(secret proxmox_api_token)"
-export TF_VAR_state_passphrase PROXMOX_VE_API_TOKEN
+# Same token cert-manager uses: one secret to rotate.
+CLOUDFLARE_API_TOKEN="$(sops decrypt --extract '["stringData"]["api-token"]'   ../../kubernetes/infrastructure/configs/cloudflare-api-token.sops.yaml)"
+export TF_VAR_state_passphrase PROXMOX_VE_API_TOKEN CLOUDFLARE_API_TOKEN
 
 exec tofu "$@"

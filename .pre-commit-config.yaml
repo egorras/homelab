@@ -37,3 +37,14 @@ repos:
         entry: sh -c 'cd metal/ansible && ANSIBLE_CONFIG=$PWD/ansible.cfg ansible-lint'
         files: '^metal/ansible/'
         pass_filenames: false
+      - id: kubeconform
+        name: kustomize build | kubeconform
+        language: system
+        entry: >-
+          sh -c 'for d in kubernetes/infrastructure/* kubernetes/apps; do kustomize build "$d" |
+          kubeconform -strict -summary -ignore-missing-schemas -skip Secret
+          -schema-location default
+          -schema-location "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json"
+          || exit 1; done'
+        files: '^kubernetes/'
+        pass_filenames: false

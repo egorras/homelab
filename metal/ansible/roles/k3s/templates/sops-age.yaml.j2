@@ -1,0 +1,9 @@
+# {{ ansible_managed }}. The cluster's own age key (not the admin key): decrypts kubernetes/**/*.sops.yaml only.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sops-age
+  namespace: flux-system
+type: Opaque
+stringData:
+  age.agekey: {{ k3s_sops_age_key }}
