@@ -1,0 +1,11 @@
+title: homelab
+theme: dark
+color: slate
+headerStyle: clean
+layout:
+  Lab:
+    style: row
+    columns: 4
+  Platform:
+    style: row
+    columns: 4

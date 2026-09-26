@@ -1,0 +1,31 @@
+# siteMonitor checks from inside the cluster (CoreDNS resolves *.lab via AdGuard).
+- Lab:
+    - Jellyfin:
+        href: https://jellyfin.lab.egorras.net
+        icon: jellyfin.svg
+        siteMonitor: http://192.168.0.242:8096/health
+    - Home Assistant:
+        href: http://192.168.0.59:8123
+        icon: home-assistant.svg
+        description: on DHCP until the restore; ha.lab later
+    - AdGuard Home:
+        href: https://adguard.lab.egorras.net
+        icon: adguard-home.svg
+        siteMonitor: http://192.168.0.241
+    - Proxmox:
+        href: https://pve.lab.egorras.net
+        icon: proxmox.svg
+        siteMonitor: https://pve.lab.egorras.net
+- Platform:
+    - Grafana:
+        href: https://grafana.lab.egorras.net
+        icon: grafana.svg
+        siteMonitor: https://grafana.lab.egorras.net/api/health
+    - Homelable:
+        href: https://map.lab.egorras.net
+        icon: mdi-lan
+        siteMonitor: https://map.lab.egorras.net
+    - GitHub:
+        href: https://github.com/egorras/homelab
+        icon: github.svg
+        description: this lab, as code
