@@ -1,0 +1,16 @@
+# Lab names from inside the cluster. The node's resolver is the router, which drops public answers that point at
+# private IPs (DNS-rebinding protection), so *.lab.egorras.net -> 192.168.0.240 comes back empty through it.
+# Ask AdGuard (split DNS), Cloudflare as fallback when AdGuard is down. k3s' CoreDNS imports *.server keys.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-custom
+  namespace: kube-system
+data:
+  lab.server: |
+    lab.egorras.net:53 {
+        forward . 192.168.0.241 1.1.1.1 {
+            policy sequential
+        }
+        cache 30
+    }
