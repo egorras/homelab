@@ -39,6 +39,7 @@ spec:
             - {name: CORS_ORIGINS, value: '["https://map.lab.egorras.net"]'}
             - {name: AUTH_MODE, value: local}
             - {name: AUTH_USERNAME, value: admin}
+            - {name: SCANNER_RANGES, value: '["192.168.0.0/24"]'} # default for Sidebar -> Scan Network
             - name: AUTH_PASSWORD_HASH
               valueFrom: {secretKeyRef: {name: homelable, key: admin-password-hash}}
             - name: SECRET_KEY
