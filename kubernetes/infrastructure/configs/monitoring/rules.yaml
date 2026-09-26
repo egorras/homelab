@@ -1,0 +1,41 @@
+# Lab-specific alerts on top of the stack's default Kubernetes/node rules. warning/critical go to ntfy.
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: homelab
+spec:
+  groups:
+    - name: homelab
+      rules:
+        - alert: ProbeFailed
+          expr: probe_success == 0
+          for: 3m
+          labels:
+            severity: critical
+          annotations:
+            summary: "{{ $labels.instance }} is down"
+            description: "Blackbox probe {{ $labels.job }} has failed for 3 minutes."
+        - alert: CertificateExpiresSoon
+          expr: (probe_ssl_earliest_cert_expiry - time()) / 86400 < 14
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "Certificate for {{ $labels.instance }} expires in {{ $value | humanize }} days"
+            description: "cert-manager renews at 30 days left, so renewal is failing."
+        - alert: ProxmoxHostDown
+          expr: up{job="pve-node"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Proxmox host node-exporter unreachable"
+        - alert: HddFilling
+          expr: >-
+            node_filesystem_avail_bytes{job="pve-node",mountpoint="/mnt/hdd"}
+            / node_filesystem_size_bytes{job="pve-node",mountpoint="/mnt/hdd"} < 0.10
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "/mnt/hdd on the Proxmox host has less than 10% free"

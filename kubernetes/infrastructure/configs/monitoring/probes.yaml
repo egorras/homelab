@@ -1,0 +1,48 @@
+# Blackbox probes. HA joins once it has a stable IP (DHCP until the restore is done).
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMProbe
+metadata:
+  name: http
+spec:
+  jobName: blackbox-http
+  vmProberSpec:
+    url: blackbox-exporter.monitoring.svc:9115
+  module: http_2xx
+  interval: 30s
+  targets:
+    staticConfig:
+      targets:
+        - https://whoami.lab.egorras.net # ingress + wildcard certificate
+        - https://grafana.lab.egorras.net/api/health
+        - http://192.168.0.241/ # AdGuard UI
+        - http://192.168.0.242:8096/health # Jellyfin
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMProbe
+metadata:
+  name: http-insecure
+spec:
+  jobName: blackbox-http
+  vmProberSpec:
+    url: blackbox-exporter.monitoring.svc:9115
+  module: http_2xx_insecure
+  interval: 30s
+  targets:
+    staticConfig:
+      targets:
+        - https://192.168.0.18:8006 # Proxmox UI/API (self-signed)
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMProbe
+metadata:
+  name: dns
+spec:
+  jobName: blackbox-dns
+  vmProberSpec:
+    url: blackbox-exporter.monitoring.svc:9115
+  module: dns
+  interval: 30s
+  targets:
+    staticConfig:
+      targets:
+        - 192.168.0.241 # AdGuard

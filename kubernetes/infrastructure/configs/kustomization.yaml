@@ -4,3 +4,4 @@ resources:
   - cloudflare-api-token.sops.yaml
   - cluster-issuer.yaml
   - wildcard-certificate.yaml
+  - monitoring

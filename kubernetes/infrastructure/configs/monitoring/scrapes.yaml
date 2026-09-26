@@ -1,0 +1,11 @@
+# The Proxmox host's node-exporter (installed by the pve_host Ansible role).
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: pve
+spec:
+  jobName: pve-node
+  targetEndpoints:
+    - targets: ["192.168.0.18:9100"]
+      labels:
+        instance: pve
