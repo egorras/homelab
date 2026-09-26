@@ -20,6 +20,16 @@
     state: directory
     mode: "0755"
 
+# Pods must not inherit the VM's search domain (lab.egorras.net): with ndots:5 every external name is tried as
+# <name>.lab.egorras.net first, and the *.lab wildcard answers it with the ingress IP (github.com -> Traefik).
+- name: K3s resolv.conf (no search domain)
+  ansible.builtin.copy:
+    dest: /etc/rancher/k3s/resolv.conf
+    mode: "0644"
+    content: |
+      nameserver {{ lan_gateway }}
+  notify: Restart k3s
+
 - name: K3s config
   ansible.builtin.copy:
     dest: /etc/rancher/k3s/config.yaml
@@ -29,6 +39,7 @@
       tls-san: [{{ ansible_host }}, k3s.lab.egorras.net]
       secrets-encryption: true
       write-kubeconfig-mode: "0600"
+      kubelet-arg: [resolv-conf=/etc/rancher/k3s/resolv.conf]
   notify: Restart k3s
 
 - name: K3s service unit
