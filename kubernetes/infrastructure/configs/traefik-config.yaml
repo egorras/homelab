@@ -1,0 +1,14 @@
+# Overrides for the Traefik that k3s bundles (its helm-controller merges these values into the chart).
+# Traefik 3 cuts request bodies off after 60s; a phone uploading a large video to Immich takes longer.
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    ports:
+      websecure:
+        transport:
+          respondingTimeouts:
+            readTimeout: 600s

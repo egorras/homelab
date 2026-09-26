@@ -12,4 +12,6 @@ One k3s VM hosts all apps. Flux watches `kubernetes/clusters/home` and applies w
 - CI never needs cluster credentials: Flux pulls, so nothing inbound is exposed.
 - Drift (manual `kubectl` edits) is reverted automatically.
 - More moving parts than Compose; accepted for self-healing and a standard app template.
-- Single node, no HA. Recovery = recreate the VM from tofu and let Flux reconcile.
+- Single node, no HA. Recovery = recreate the VM from tofu and let Flux reconcile, then restore app data that
+  lives on the VM disk (PVCs): e.g. Immich's database from its nightly dump on the HDD (docs/runbooks/immich.md),
+  or the whole VM from last night's vzdump.
