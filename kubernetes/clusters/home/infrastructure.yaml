@@ -9,9 +9,14 @@ spec:
   path: ./kubernetes/infrastructure/controllers
   prune: true
   wait: true
+  timeout: 15m
   sourceRef:
     kind: GitRepository
     name: flux-system
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
