@@ -1,5 +1,6 @@
 # Overrides for the Traefik that k3s bundles (its helm-controller merges these values into the chart).
 # Traefik 3 cuts request bodies off after 60s; a phone uploading a large video to Immich takes longer.
+# 600s capped uploads at ~750 MB on a 10 Mbit/s uplink (away from home); 1h allows ~4.5 GB.
 apiVersion: helm.cattle.io/v1
 kind: HelmChartConfig
 metadata:
@@ -11,4 +12,4 @@ spec:
       websecure:
         transport:
           respondingTimeouts:
-            readTimeout: 600s
+            readTimeout: 3600s
