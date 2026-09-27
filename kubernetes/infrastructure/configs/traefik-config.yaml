@@ -9,6 +9,11 @@ metadata:
 spec:
   valuesContent: |-
     ports:
+      # Both entrypoints: an app set to http:// uses web, which otherwise keeps the 60s default.
+      web:
+        transport:
+          respondingTimeouts:
+            readTimeout: 3600s
       websecure:
         transport:
           respondingTimeouts:
