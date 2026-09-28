@@ -6,7 +6,7 @@ Photos at https://photos.lab.egorras.net (manifests: `kubernetes/apps/immich`).
 |---|---|---|
 | Originals (`library/`, `upload/`), `encoded-video/`, `profile/` | HDD `/mnt/hdd/photos` → virtiofs → k3s VM `/mnt/photos` → `/data` | nothing yet (off-site copy: Later) |
 | Nightly DB dumps (`backups/`; schedule and retention in Administration → Settings → Backup) | same HDD folder | same |
-| Postgres | PVC `immich-postgres` (VM disk, NVMe) | nightly vzdump of the k3s VM + the dumps above |
+| Postgres | PVC `immich-postgres` (VM disk, NVMe) | weekly vzdump of the k3s VM + the dumps above |
 | Thumbnails | PVC `immich-thumbs` (NVMe) | not needed: regenerated from originals |
 | ML models | PVC `immich-model-cache` (NVMe) | not needed: downloaded again |
 

@@ -3,7 +3,8 @@ pve_host_upgrade: true
 pve_host_hdd_mountpoint: /mnt/hdd
 pve_host_hdd_dirs: [backups, media, photos]
 
-pve_host_backup_schedule: "03:00"
+# Weekly: the HDD is otherwise idle at night; Immich also dumps its DB to the HDD nightly on its own.
+pve_host_backup_schedule: "sun 03:00"
 pve_host_backup_keep_last: 3
 
 # Role + API token OpenTofu uses. The token secret is written into metal/secrets.sops.yaml on creation.

@@ -1,5 +1,5 @@
 # Media comes from the host HDD (read-only bind mount at /data/media) and Quick Sync from /dev/dri/renderD128;
-# both are attached by pve_host/lxc_passthrough.yml. Library/users live in /var/lib/jellyfin (nightly vzdump).
+# both are attached by pve_host/lxc_passthrough.yml. Library/users live in /var/lib/jellyfin (weekly vzdump).
 - name: Debian repositories with non-free (Intel media driver)
   ansible.builtin.copy:
     dest: /etc/apt/sources.list.d/debian.sources
