@@ -88,11 +88,11 @@ spec:
 
     alertmanager:
       spec:
-        # The ntfy URL (secret topic) stays out of git: mounted at /etc/vm/secrets/ntfy/url.
-        secrets: [ntfy]
+        # Bot token (@egorras_homelab_bot) stays out of git: mounted at /etc/vm/secrets/telegram/bot-token.
+        secrets: [telegram]
       config:
         route:
-          receiver: ntfy
+          receiver: telegram
           group_by: [alertname, namespace]
           group_wait: 30s
           group_interval: 5m
@@ -104,9 +104,10 @@ spec:
               receiver: blackhole
         receivers:
           - name: blackhole
-          - name: ntfy
-            webhook_configs:
-              - url_file: /etc/vm/secrets/ntfy/url
+          - name: telegram
+            telegram_configs:
+              - bot_token_file: /etc/vm/secrets/telegram/bot-token
+                chat_id: 60383518 # private chat with the bot; a user ID, only usable with the token
                 send_resolved: true
 
     grafana:

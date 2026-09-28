@@ -3,5 +3,3 @@
         - href: https://login.tailscale.com/admin/machines
     - Cloudflare:
         - href: https://dash.cloudflare.com
-    - ntfy:
-        - href: https://ntfy.sh

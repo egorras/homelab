@@ -4,7 +4,7 @@
 
 ## Decision
 The Oracle A1 VPS (arm64, Always Free) runs its own single-node k3s managed by Flux from `kubernetes/clusters/oracle`.
-It hosts external uptime monitoring of home (Gatus → ntfy), public endpoints (webhooks) and later an off-site backup target.
+It hosts external uptime monitoring of home (Gatus → Telegram), public endpoints (webhooks) and later an off-site backup target.
 Its existing WireGuard VPN stays a host service, codified with Ansible before anything else changes.
 
 ## Not here
