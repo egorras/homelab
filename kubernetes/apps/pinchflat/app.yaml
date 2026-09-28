@@ -29,7 +29,8 @@ spec:
         runAsGroup: 1000
       containers:
         - name: pinchflat
-          image: ghcr.io/kieraneglin/pinchflat:v2025.9.26 # pin a version; Renovate bumps it
+          # v2025.9.26 (first with Deno, which yt-dlp now needs for YouTube) was only pushed as `latest`: pinned by digest.
+          image: ghcr.io/kieraneglin/pinchflat:latest@sha256:01b4f98aabaf3f5fe394213f7a32578c9e84e42080f52e2f8334021a4473b202
           env:
             - {name: TZ, value: Europe/Berlin}
             - {name: LOG_LEVEL, value: info}
