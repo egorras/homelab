@@ -5,3 +5,4 @@ pve_host_lxc_passthrough:
     options:
       - {key: mp0, value: "/mnt/hdd/media/data/media,mp=/data/media,ro=1"}
       - {key: dev0, value: "/dev/dri/renderD128,gid=44"}   # gid 44 = video inside the container (Quick Sync)
+pve_host_hdd_id: ata-ST4000VX016-3CV104_WW6A5N5V # /dev/disk/by-id; for the spindown timer

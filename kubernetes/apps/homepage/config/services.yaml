@@ -9,9 +9,9 @@
         icon: immich.svg
         siteMonitor: http://immich-server.immich.svc/api/server/ping
     - Home Assistant:
-        href: http://192.168.0.59:8123
+        href: http://192.168.0.59
         icon: home-assistant.svg
-        description: on DHCP until the restore; ha.lab later
+        siteMonitor: http://192.168.0.59/manifest.json
     - AdGuard Home:
         href: https://adguard.lab.egorras.net
         icon: adguard-home.svg

@@ -7,6 +7,10 @@
   ansible.builtin.command: ethtool -K {{ pve_host_nic }} tso off gso off gro off
   changed_when: true
 
+- name: Apply HDD spindown timer
+  ansible.builtin.command: hdparm -S {{ pve_host_hdd_spindown }} /dev/disk/by-id/{{ pve_host_hdd_id }}
+  changed_when: true
+
 - name: Reboot containers with new passthrough
   ansible.builtin.command: pct reboot {{ item.vmid }}
   loop: "{{ pve_host_lxc_passthrough }}"

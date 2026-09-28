@@ -6,6 +6,16 @@
     opts: defaults,noatime,nofail
     state: mounted
 
+- name: HDD spindown timer (applied at boot by Debian's hdparm udev rule)
+  ansible.builtin.blockinfile:
+    path: /etc/hdparm.conf
+    marker: "# {mark} ANSIBLE MANAGED: HDD spindown"
+    block: |
+      /dev/disk/by-id/{{ pve_host_hdd_id }} {
+        spindown_time = {{ pve_host_hdd_spindown }}
+      }
+  notify: Apply HDD spindown timer
+
 - name: HDD directories
   ansible.builtin.file:
     path: "{{ pve_host_hdd_mountpoint }}/{{ item }}"
@@ -31,16 +41,23 @@
   when: pve_host_hdd_storage.rc != 0
   changed_when: true
 
-- name: Check nightly backup job
-  ansible.builtin.command: pvesh get /cluster/backup/nightly
+- name: Check weekly backup job
+  ansible.builtin.command: pvesh get /cluster/backup/weekly --output-format json
   register: pve_host_backup_job
   changed_when: false
   check_mode: false  # read-only; later tasks need its output in --check
   failed_when: false
 
-- name: Add nightly backup job (all guests)
+- name: Add weekly backup job (all guests)
   ansible.builtin.command: >-
-    pvesh create /cluster/backup --id nightly --schedule {{ pve_host_backup_schedule }} --all 1
+    pvesh create /cluster/backup --id weekly --schedule {{ pve_host_backup_schedule | quote }} --all 1
     --storage hdd-backup --mode snapshot --compress zstd --notes-template {{ '{{guestname}}' | quote }}
   when: pve_host_backup_job.rc != 0
+  changed_when: true
+
+- name: Update weekly backup job schedule
+  ansible.builtin.command: pvesh set /cluster/backup/weekly --schedule {{ pve_host_backup_schedule | quote }}
+  when:
+    - pve_host_backup_job.rc == 0
+    - (pve_host_backup_job.stdout | from_json).schedule != pve_host_backup_schedule
   changed_when: true

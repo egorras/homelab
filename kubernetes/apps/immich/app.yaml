@@ -1,5 +1,5 @@
 # Immich (immich.app): photos and videos. https://photos.lab.egorras.net
-# Storage: originals, encoded video and nightly DB dumps on the HDD (host /mnt/hdd/photos, virtiofs -> VM
+# Storage: originals, encoded video and weekly DB dumps on the HDD (host /mnt/hdd/photos, virtiofs -> VM
 # /mnt/photos -> /data); Postgres, thumbnails and ML models on the VM disk (NVMe). Restore/upgrade:
 # docs/runbooks/immich.md. Upgrades: read the release notes first, breaking changes are common.
 apiVersion: v1
@@ -182,6 +182,7 @@ spec:
             - {name: REDIS_HOSTNAME, value: immich-valkey}
             - {name: IMMICH_MACHINE_LEARNING_URL, value: "http://immich-machine-learning:3003"}
             - {name: IMMICH_WORKERS_INCLUDE, value: api}
+            - {name: IMMICH_CONFIG_FILE, value: /config/config.yaml}
           ports:
             - name: http
               containerPort: 2283
@@ -203,7 +204,12 @@ spec:
               mountPath: /data
             - name: thumbs
               mountPath: /data/thumbs
+            - name: config
+              mountPath: /config
       volumes:
+        - name: config
+          configMap:
+            name: immich-config
         - name: photos
           hostPath:
             path: /mnt/photos # every subfolder carries an .immich marker: an unmounted share stops Immich
@@ -261,6 +267,7 @@ spec:
             - {name: REDIS_HOSTNAME, value: immich-valkey}
             - {name: IMMICH_MACHINE_LEARNING_URL, value: "http://immich-machine-learning:3003"}
             - {name: IMMICH_WORKERS_EXCLUDE, value: api}
+            - {name: IMMICH_CONFIG_FILE, value: /config/config.yaml} # see immich-server
           resources:
             requests: {cpu: 100m, memory: 512Mi}
             # 1.5 CPUs as in the old lab: full-speed imports pushed the i5-8500 to 87 °C.
@@ -271,7 +278,12 @@ spec:
               mountPath: /data
             - name: thumbs
               mountPath: /data/thumbs
+            - name: config
+              mountPath: /config
       volumes:
+        - name: config
+          configMap:
+            name: immich-config
         - name: photos
           hostPath:
             path: /mnt/photos

@@ -11,7 +11,7 @@ secrets_file: "{{ playbook_dir }}/../../secrets.sops.yaml"
 
 # Guests on the Proxmox host. MACs are the previous lab's, so existing DHCP leases/reservations still match.
 guests:
-  haos: {vmid: 100, mac: "02:C7:D8:AF:C6:DA"}   # DHCP: HAOS has no cloud-init
+  haos: {vmid: 100, ip: 192.168.0.59, mac: "02:C7:D8:AF:C6:DA"}   # DHCP reservation on the router (by MAC): HAOS has no cloud-init
   k3s: {vmid: 101, ip: 192.168.0.240}
   adguard: {vmid: 102, ip: 192.168.0.241, mac: "BC:24:11:7F:E4:5B"}
   jellyfin: {vmid: 103, ip: 192.168.0.242, mac: "BC:24:11:53:D6:7F"}

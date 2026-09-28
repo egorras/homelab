@@ -34,4 +34,4 @@ make bootstrap                  # must report changed=0
 ## Check
 - `https://192.168.0.18:8006` — log in as `root` (password: `sops decrypt --extract '["root_password"]' metal/secrets.sops.yaml`).
 - `pve` online in the Tailscale console with route `192.168.0.0/24` approved.
-- Datacenter → Backup shows job `nightly`; Storage shows `hdd-backup`.
+- Datacenter → Backup shows job `weekly`; Storage shows `hdd-backup`.

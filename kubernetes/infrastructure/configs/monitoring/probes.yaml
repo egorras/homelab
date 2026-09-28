@@ -1,4 +1,4 @@
-# Blackbox probes. HA joins once it has a stable IP (DHCP until the restore is done).
+# Blackbox probes.
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMProbe
 metadata:
@@ -21,6 +21,7 @@ spec:
         - https://pve.lab.egorras.net # Traefik -> Proxmox (ServersTransport)
         - http://192.168.0.241/ # AdGuard UI
         - http://192.168.0.242:8096/health # Jellyfin
+        - http://192.168.0.59/manifest.json # Home Assistant (port 80, set in its own config)
 ---
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMProbe

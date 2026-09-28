@@ -9,3 +9,22 @@ spec:
     - targets: ["192.168.0.18:9100"]
       labels:
         instance: pve
+---
+# Home Assistant's Prometheus endpoint, for the Tapo P115 plug that powers the whole server (wall watts).
+# Enabled in HA's configuration.yaml (not in git: HAOS is an appliance, docs/adr/0002):
+#   prometheus:
+#     requires_auth: false  # LAN only; exports just the plug's entities
+#     filter:
+#       include_entity_globs: [sensor.homelab_plug_p115*]
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: home-assistant
+spec:
+  jobName: home-assistant
+  targetEndpoints:
+    - targets: ["192.168.0.59:80"]
+      path: /api/prometheus
+      interval: 60s
+      labels:
+        instance: haos
