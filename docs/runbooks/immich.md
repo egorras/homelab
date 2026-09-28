@@ -12,6 +12,10 @@ Photos at https://photos.lab.egorras.net (manifests: `kubernetes/apps/immich`).
 
 Immich stores absolute paths (`/data/...`) in the database, so the library must stay mounted at `/data`.
 
+Settings live in `kubernetes/apps/immich/config.yaml` (`IMMICH_CONFIG_FILE`), so Administration → Settings is
+read-only; list only keys that differ from the defaults. Integrity checks (missing/untracked files, checksums of
+every original) run weekly, Sun 04:00, after the vzdump.
+
 ## Restore the database from a dump
 
 For a fresh cluster or a rebuilt k3s VM. (Tried once for the move from the old lab, dump

@@ -1,0 +1,13 @@
+# Immich system config (IMMICH_CONFIG_FILE): only the keys that differ from the defaults; Immich merges the rest.
+# With a config file in use, Administration -> Settings is read-only: change settings here.
+storageTemplate:
+  enabled: true
+# Defaults run all three daily at 03:00 and the checksum one reads every original on the HDD. Weekly, an hour after
+# the Proxmox vzdump (Sun 03:00, metal/ansible/roles/pve_host/defaults/main.yml) so the two don't fight over the HDD.
+integrityChecks:
+  missingFiles:
+    cronExpression: "0 4 * * 0"
+  untrackedFiles:
+    cronExpression: "0 4 * * 0"
+  checksumFiles:
+    cronExpression: "0 4 * * 0"

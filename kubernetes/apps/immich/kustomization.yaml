@@ -4,3 +4,6 @@ namespace: immich
 resources:
   - app.yaml
   - secret.sops.yaml
+configMapGenerator:
+  - name: immich-config
+    files: [config.yaml]
