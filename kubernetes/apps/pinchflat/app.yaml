@@ -1,0 +1,100 @@
+# Pinchflat (github.com/kieraneglin/pinchflat): downloads YouTube channels/playlists into Jellyfin's library.
+# https://youtube.lab.egorras.net. Videos: HDD /mnt/hdd/media/data/media/youtube (virtiofs "media" -> VM
+# /mnt/media -> /downloads), shown by Jellyfin as a Shows library at /data/media/youtube. Settings and the SQLite
+# DB on the VM disk. Runbook: docs/runbooks/pinchflat.md.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pinchflat
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pinchflat
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate # single node + ReadWriteOnce volumes: never run two copies
+  selector:
+    matchLabels:
+      app: pinchflat
+  template:
+    metadata:
+      labels:
+        app: pinchflat
+    spec:
+      securityContext:
+        # Owner of the youtube folder on the host (pve_host_youtube_uid); Jellyfin reads it as "other" (umask 022).
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+        - name: pinchflat
+          image: ghcr.io/kieraneglin/pinchflat:v2025.9.26 # pin a version; Renovate bumps it
+          env:
+            - {name: TZ, value: Europe/Berlin}
+            - {name: LOG_LEVEL, value: info}
+            - {name: YT_DLP_WORKER_CONCURRENCY, value: "1"} # one download at a time: gentler on YouTube rate limits
+          ports:
+            - name: http
+              containerPort: 8945
+          readinessProbe: # no traffic until the app answers (avoids 502/504 during rollouts)
+            httpGet:
+              path: /healthcheck
+              port: http
+          resources:
+            requests: {cpu: 50m, memory: 256Mi}
+            limits: {cpu: 2000m, memory: 1Gi} # ffmpeg merges/remuxes after each download
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: downloads
+              mountPath: /downloads
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: pinchflat-config
+        - name: downloads
+          hostPath:
+            path: /mnt/media/youtube # exists only on the HDD: an unmounted share keeps the pod from starting
+            type: Directory
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pinchflat-config
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pinchflat
+spec:
+  selector:
+    app: pinchflat
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pinchflat
+spec:
+  rules:
+    - host: youtube.lab.egorras.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pinchflat
+                port:
+                  name: http
+  tls:
+    - hosts: [youtube.lab.egorras.net] # wildcard certificate from Traefik's default TLS store

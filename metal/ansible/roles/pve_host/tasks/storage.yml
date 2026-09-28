@@ -23,6 +23,14 @@
     mode: "0755"
   loop: "{{ pve_host_hdd_dirs }}"
 
+- name: YouTube downloads folder (Pinchflat writes, Jellyfin reads)
+  ansible.builtin.file:
+    path: "{{ pve_host_hdd_mountpoint }}/{{ pve_host_media_dir }}/youtube"
+    state: directory
+    owner: "{{ pve_host_youtube_uid }}"
+    group: "{{ pve_host_youtube_uid }}"
+    mode: "0755"
+
 - name: Allow snippets and disk imports on local storage
   ansible.builtin.command: pvesm set local --content iso,vztmpl,backup,snippets,import
   changed_when: false
