@@ -44,6 +44,13 @@ spec:
               valueFrom: {secretKeyRef: {name: homelable, key: admin-password-hash}}
             - name: SECRET_KEY
               valueFrom: {secretKeyRef: {name: homelable, key: secret-key}}
+            # Proxmox inventory import (read-only PVEAuditor token, metal/ansible/roles/pve_host/tasks/homelable.yml).
+            # Guests land under Pending; seed.py turns on the hourly auto-sync.
+            - {name: PROXMOX_HOST, value: "192.168.0.18"}
+            - {name: PROXMOX_VERIFY_TLS, value: "false"} # Proxmox's self-signed cert, LAN hop
+            - {name: PROXMOX_TOKEN_ID, value: "homelable@pve!import"}
+            - name: PROXMOX_TOKEN_SECRET
+              valueFrom: {secretKeyRef: {name: homelable, key: proxmox-token-secret, optional: true}} # absent: import off
           ports:
             - name: http
               containerPort: 8000
@@ -60,10 +67,26 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /app/data
+        # Draws the lab from topology.yaml over the backend API, then idles. Same image: has httpx + PyYAML.
+        - name: seed
+          image: ghcr.io/pouzor/homelable-backend:3.5.1
+          command: [python, -u, /seed/seed.py]
+          env:
+            - name: HOMELABLE_PASSWORD
+              valueFrom: {secretKeyRef: {name: homelable, key: admin-password}}
+          resources:
+            requests: {cpu: 5m, memory: 32Mi}
+            limits: {memory: 128Mi}
+          volumeMounts:
+            - name: seed
+              mountPath: /seed
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: homelable-data
+        - name: seed
+          configMap:
+            name: homelable-seed
 ---
 apiVersion: v1
 kind: Service

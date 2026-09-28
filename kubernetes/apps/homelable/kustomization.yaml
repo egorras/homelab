@@ -4,3 +4,8 @@ namespace: homelable
 resources:
   - app.yaml
   - secret.sops.yaml
+configMapGenerator:
+  - name: homelable-seed # hashed name: editing topology.yaml rolls the backend pod and seeds again
+    files:
+      - topology.yaml
+      - seed.py

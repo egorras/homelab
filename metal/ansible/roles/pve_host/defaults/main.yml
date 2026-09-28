@@ -44,6 +44,11 @@ pve_host_tofu_privs:
   - VM.Migrate
   - VM.PowerMgmt
 
+# Read-only (PVEAuditor) token Homelable imports the Proxmox inventory with. Its secret is written into
+# kubernetes/apps/homelable/secret.sops.yaml on creation.
+pve_host_homelable_user: homelable@pve
+pve_host_homelable_token_id: import
+
 pve_host_tailscale_tags: tag:pve
 
 # sha256 of haos_ova-<haos_version>.qcow2.xz (GitHub release asset digest); bump together with haos_version.

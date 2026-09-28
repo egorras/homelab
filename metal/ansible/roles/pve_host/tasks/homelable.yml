@@ -1,0 +1,48 @@
+# Read-only Proxmox API token for Homelable's inventory import (kubernetes/apps/homelable). Same flow as
+# tofu.yml. The token is created outside CI: CI commits back only tofu state, so a secret written here in CI
+# would be lost. Create it locally once: `make bootstrap` (runs this file too), then commit the secret.
+- name: Check Homelable user
+  ansible.builtin.command: pveum user list --output-format json
+  register: pve_host_homelable_users
+  changed_when: false
+  check_mode: false  # read-only; later tasks need its output in --check
+
+- name: Create Homelable user
+  ansible.builtin.command: pveum user add {{ pve_host_homelable_user }} --comment "Homelable inventory import (read-only)"
+  when: pve_host_homelable_user not in (pve_host_homelable_users.stdout | from_json | map(attribute='userid'))
+  changed_when: true
+
+- name: Grant PVEAuditor on /
+  ansible.builtin.command: pveum acl modify / --users {{ pve_host_homelable_user }} --roles PVEAuditor
+  changed_when: false
+
+- name: List Homelable tokens
+  ansible.builtin.command: pveum user token list {{ pve_host_homelable_user }} --output-format json
+  register: pve_host_homelable_tokens
+  changed_when: false
+  failed_when: pve_host_homelable_tokens.rc != 0 and 'no such user' not in pve_host_homelable_tokens.stderr  # --check
+  check_mode: false  # read-only; later tasks need its output in --check
+
+- name: Create Homelable API token
+  ansible.builtin.command: >-
+    pveum user token add {{ pve_host_homelable_user }} {{ pve_host_homelable_token_id }} --privsep 0 --output-format json
+  register: pve_host_homelable_new_token
+  when:
+    - pve_host_homelable_token_id not in (pve_host_homelable_tokens.stdout | default('[]', true) | from_json | map(attribute='tokenid'))
+    - lookup('ansible.builtin.env', 'CI') != 'true'  # see top of file
+  changed_when: true
+  no_log: true
+
+- name: Store Homelable token in its app secret (commit the file afterwards)  # noqa: no-handler
+  ansible.builtin.command:
+    argv:
+      - sops
+      - set
+      - "{{ playbook_dir }}/../../../kubernetes/apps/homelable/secret.sops.yaml"
+      - '["stringData"]["proxmox-token-secret"]'
+      - "{{ (pve_host_homelable_new_token.stdout | from_json).value | to_json }}"
+  delegate_to: localhost
+  become: false
+  when: pve_host_homelable_new_token is changed
+  changed_when: true
+  no_log: true

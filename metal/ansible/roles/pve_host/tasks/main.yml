@@ -29,3 +29,7 @@
 - name: OpenTofu API user and token
   ansible.builtin.import_tasks: tofu.yml
   tags: [tofu]
+
+- name: Homelable read-only API user and token
+  ansible.builtin.import_tasks: homelable.yml
+  tags: [homelable]

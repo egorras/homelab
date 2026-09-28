@@ -1,0 +1,88 @@
+# The lab as Homelable draws it. seed.py (a sidecar of homelable-backend) creates or updates these nodes and
+# links on every rollout; editing this file rolls the pod. Nodes are matched by label; it never deletes
+# anything, never moves a node that already exists (drag freely), and leaves scanned/imported nodes alone.
+# IPs mirror metal/ansible/inventory/group_vars/all.yml.
+#
+# node fields: https://github.com/Pouzor/homelable (backend/app/schemas/nodes.py)
+#   type:  isp router switch server proxmox vm lxc nas iot ap generic ...
+#   check: ping | http | https | tcp | ssh | health | none (+ target; default target is the ip)
+# link types: ethernet wifi vlan virtual cluster fibre ...
+nodes:
+  internet:
+    label: Internet
+    type: isp
+    check: {method: ping, target: 1.1.1.1}
+    pos: [0, 0]
+  router:
+    label: Router
+    type: router
+    ip: 192.168.0.1
+    check: {method: ping}
+    pos: [0, 160]
+  pve:
+    label: Proxmox
+    type: proxmox
+    hostname: pve.lab.egorras.net
+    ip: 192.168.0.18
+    os: Proxmox VE
+    check: {method: tcp, target: "192.168.0.18:8006"}
+    services:
+      - {name: Proxmox VE, url: "https://pve.lab.egorras.net"}
+    pos: [0, 320]
+  tailscale:
+    label: Tailscale
+    type: generic
+    notes: Proxmox is the tailnet's subnet router for 192.168.0.0/24; CI joins as an ephemeral tag:ci node.
+    check: {method: none}
+    pos: [360, 320]
+  k3s:
+    label: k3s
+    type: vm
+    hostname: k3s
+    ip: 192.168.0.240
+    os: Debian 13 · k3s
+    check: {method: tcp, target: "192.168.0.240:6443"}
+    services:
+      - {name: Homepage, url: "https://home.lab.egorras.net"}
+      - {name: Immich, url: "https://photos.lab.egorras.net"}
+      - {name: Grafana, url: "https://grafana.lab.egorras.net"}
+      - {name: Headlamp, url: "https://k8s.lab.egorras.net"}
+      - {name: Homelable, url: "https://map.lab.egorras.net"}
+    pos: [-450, 520]
+  adguard:
+    label: AdGuard Home
+    type: lxc
+    hostname: adguard
+    ip: 192.168.0.241
+    check: {method: tcp, target: "192.168.0.241:53"}
+    services:
+      - {name: AdGuard Home, url: "https://adguard.lab.egorras.net"}
+    pos: [-150, 520]
+  jellyfin:
+    label: Jellyfin
+    type: lxc
+    hostname: jellyfin
+    ip: 192.168.0.242
+    check: {method: health, target: "http://192.168.0.242:8096/health"}
+    services:
+      - {name: Jellyfin, url: "https://jellyfin.lab.egorras.net"}
+    pos: [150, 520]
+  haos:
+    label: Home Assistant
+    type: vm
+    hostname: haos
+    ip: 192.168.0.59
+    os: Home Assistant OS
+    check: {method: http, target: "http://192.168.0.59/manifest.json"}
+    services:
+      - {name: Home Assistant, url: "http://192.168.0.59"}
+    pos: [450, 520]
+
+links:
+  - {from: internet, to: router, type: ethernet, label: WAN}
+  - {from: router, to: pve, type: ethernet}
+  - {from: pve, to: tailscale, type: virtual, label: subnet router}
+  - {from: pve, to: k3s, type: virtual}
+  - {from: pve, to: adguard, type: virtual}
+  - {from: pve, to: jellyfin, type: virtual}
+  - {from: pve, to: haos, type: virtual}
