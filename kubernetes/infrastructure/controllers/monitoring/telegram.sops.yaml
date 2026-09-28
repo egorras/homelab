@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: telegram
+stringData:
+    bot-token: ENC[AES256_GCM,data:KkKwRZ+5Fh5Lygk6alRuuWny97QaWLPsjTEv3FSToolYiCpuhstxFRpCL1AIOA==,iv:c/HM8FboYixdNaZCw1+bM1ahcRqyy8MeHUy4ZRRGWcI=,tag:z7YzUJmSi/Yo+KtuCvIHrA==,type:str]
+sops:
+    age:
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA5bVZqVjR1b0toSWU2TVBG
+            Wk1Nc2FEaHFqQi85OHVMOE5FNTBlTll0aGxzCkJqa0U5anFPZXRmUGtHUWJFU1hR
+            UXZhYmZ5SG41L3lma080ODRwa0lXMk0KLS0tIDMyWi9LQ3pVandYa1NpRGl0bjJj
+            YndVamdaNTJOcEx1UEFSczIyT0dRNWsKUitafZavak7jprMht1swxJfPSg1eZAdu
+            MUXm1YEh2ICqlAaLBJqtSciYq7XHRiXR8Raa2g/yrJwzpRHDolgq7w==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age14uzygqz0hgepvwphdrsualggykr8wpesulf29vphwzhr6ttxafhqmsjpgs
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBTUS9kR1NBNWVvWjl0cmxO
+            Y0Y4WW45Qys5a2I2OW9RcUlEUHRYendpOHlnCldFeXMyOXZkYzgvR1BPbWdCa2NZ
+            Ti9mV1ZjR01JWW14V3IyWXZZSFVvZ28KLS0tIEJYdFczZlp3cmF1MnR5clBBZFJr
+            TER1VUxodFh0WGFiLzQrL2hkTWdvV1kKWo608L0PGzxbxhfIOQOVqZ0If7KWJzpq
+            uj+NXNbOnMlaKW990NnchbVYEs0RfKvAqrMxe0sDNFrwzITOdIt1ZA==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age1pme5neke5tpnfllq03gmp7595ldn3azkaw8qna557t0r94f604lsg2yluv
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-09-28T07:41:38Z"
+    mac: ENC[AES256_GCM,data:DvxOXTWETXWMobxRJTmfN1pBhn2M7pcUnfCRI3EhA1+1beEhF9U7o+Wxjvb/sL2BdyRYsjo7OYRxCocCcuAguRHPZNk2E7+AOdfRXmdoPq9iImO8FpN2UVaRK+C3vyrkFuYEHhBXnf1ONMPSDIQvEkfPn5T2pbYo9clSFo44cXs=,iv:rkGRtXYatDwumu6maz8nCNjqz/2sgRvSf6qImCK4/Gk=,tag:XcpuwrMDSNBGvLqzA62ZVw==,type:str]
+    version: 3.13.3

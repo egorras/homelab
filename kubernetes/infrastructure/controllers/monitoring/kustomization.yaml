@@ -4,6 +4,6 @@ namespace: monitoring
 resources:
   - namespace.yaml
   - grafana-admin.sops.yaml
-  - ntfy.sops.yaml
+  - telegram.sops.yaml
   - victoria-metrics.yaml
   - blackbox-exporter.yaml

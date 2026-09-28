@@ -28,10 +28,10 @@ Any manual step found along the way becomes code or a runbook.
   ✅ `tofu plan` clean; DNS, Jellyfin, HA respond.
 - [x] **M4 — k3s + Flux**: k3s via Ansible, Flux via k3s auto-deploy (public repo, no bootstrap token), SOPS decryption (cluster age key), cert-manager wildcard
   `*.lab.egorras.net` (DNS-01), `whoami`. ✅ merged change live in ~1 min with a valid cert.
-- [ ] **M5 — platform + first apps**: VictoriaMetrics + Grafana + Alertmanager → ntfy, blackbox probes;
+- [ ] **M5 — platform + first apps**: VictoriaMetrics + Grafana + Alertmanager → Telegram, blackbox probes;
   Homepage, Homelable; `apps/_template` + runbook. ✅ new app = one PR copying the template.
 - [ ] **M6 — Oracle VPS**: codify the existing host (WireGuard) with 0 drift first, then k3s + Flux `clusters/oracle`:
-  Gatus probing home → ntfy. ✅ home k3s down → phone alert from the cloud.
+  Gatus probing home → Telegram. ✅ home k3s down → phone alert from the cloud.
 
 **Later** (one PR each via the template): media stack, Immich, n8n + CloudNativePG, Homebox, Authelia SSO,
 backups (Garage + off-site), DR drill (destroy k3s VM → time to recovery), docs site.

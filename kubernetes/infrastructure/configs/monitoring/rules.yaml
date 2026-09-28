@@ -1,4 +1,4 @@
-# Lab-specific alerts on top of the stack's default Kubernetes/node rules. warning/critical go to ntfy.
+# Lab-specific alerts on top of the stack's default Kubernetes/node rules. warning/critical go to Telegram.
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMRule
 metadata:
