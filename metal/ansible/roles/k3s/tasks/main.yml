@@ -8,6 +8,16 @@
     opts: defaults,nofail
     state: mounted
 
+# Jellyfin's library (virtiofs tag "media"); apps mount a subfolder with hostPath type Directory, so an unmounted
+# share keeps them from starting instead of filling the VM disk.
+- name: Mount media share
+  ansible.posix.mount:
+    path: "{{ k3s_media_mountpoint }}"
+    src: media
+    fstype: virtiofs
+    opts: defaults,nofail
+    state: mounted
+
 - name: Install k3s binary
   ansible.builtin.get_url:
     url: https://github.com/k3s-io/k3s/releases/download/{{ k3s_version | urlencode }}/k3s

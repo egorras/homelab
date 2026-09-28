@@ -45,6 +45,7 @@ nodes:
     services:
       - {name: Homepage, url: "https://home.lab.egorras.net"}
       - {name: Immich, url: "https://photos.lab.egorras.net"}
+      - {name: Pinchflat, url: "https://youtube.lab.egorras.net"}
       - {name: Grafana, url: "https://grafana.lab.egorras.net"}
       - {name: Headlamp, url: "https://k8s.lab.egorras.net"}
       - {name: Homelable, url: "https://map.lab.egorras.net"}

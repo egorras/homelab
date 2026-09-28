@@ -9,4 +9,5 @@ Step-by-step procedures for things that are not (yet) automated. One file per pr
 - [new-app.md](new-app.md): add an app from kubernetes/apps/_template in one PR
 - [headlamp.md](headlamp.md): Kubernetes web UI (Headlamp) and Lens/kubectl access
 - [immich.md](immich.md): Immich storage layout, database restore from a dump, upgrades
+- [pinchflat.md](pinchflat.md): YouTube channels into Jellyfin: first setup, adding channels, the Jellyfin library
 - [homelable.md](homelable.md): network map drawn from topology.yaml, Proxmox import token

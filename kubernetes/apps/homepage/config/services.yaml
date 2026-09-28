@@ -8,6 +8,11 @@
         href: https://photos.lab.egorras.net
         icon: immich.svg
         siteMonitor: http://immich-server.immich.svc/api/server/ping
+    - Pinchflat:
+        href: https://youtube.lab.egorras.net
+        icon: pinchflat.png
+        description: YouTube channels -> Jellyfin
+        siteMonitor: http://pinchflat.pinchflat.svc/healthcheck
     - Home Assistant:
         href: http://192.168.0.59
         icon: home-assistant.svg

@@ -2,6 +2,10 @@ pve_host_upgrade: true
 
 pve_host_hdd_mountpoint: /mnt/hdd
 pve_host_hdd_dirs: [backups, media, photos]
+# Jellyfin's media root (bind-mounted read-only into its LXC) and the k3s virtiofs share "media".
+pve_host_media_dir: media/data/media
+# Written by Pinchflat in k3s as this uid: virtiofs passes uids through unchanged.
+pve_host_youtube_uid: 1000
 # hdparm -S: 1-240 = n*5 s, 241-251 = (n-240)*30 min. 242 = 1 h: with 1-2 users the HDD (photo originals,
 # movies, backups) is idle most of the day, and an hour keeps a film night or a photo session from spinning it
 # up and down repeatedly. smartd and the smartmon collector skip a sleeping disk (-n standby).
