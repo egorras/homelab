@@ -1,5 +1,5 @@
 # Immich (immich.app): photos and videos. https://photos.lab.egorras.net
-# Storage: originals, encoded video and nightly DB dumps on the HDD (host /mnt/hdd/photos, virtiofs -> VM
+# Storage: originals, encoded video and weekly DB dumps on the HDD (host /mnt/hdd/photos, virtiofs -> VM
 # /mnt/photos -> /data); Postgres, thumbnails and ML models on the VM disk (NVMe). Restore/upgrade:
 # docs/runbooks/immich.md. Upgrades: read the release notes first, breaking changes are common.
 apiVersion: v1

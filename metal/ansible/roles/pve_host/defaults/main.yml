@@ -7,7 +7,7 @@ pve_host_hdd_dirs: [backups, media, photos]
 # up and down repeatedly. smartd and the smartmon collector skip a sleeping disk (-n standby).
 pve_host_hdd_spindown: 242
 
-# Weekly: the HDD is otherwise idle at night; Immich also dumps its DB to the HDD nightly on its own.
+# Weekly: the HDD is otherwise idle; Immich batches its DB dump and integrity checks at Sun 04:00.
 pve_host_backup_schedule: "sun 03:00"
 pve_host_backup_keep_last: 3
 

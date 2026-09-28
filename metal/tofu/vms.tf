@@ -57,7 +57,7 @@ resource "proxmox_virtual_environment_vm" "k3s" {
   serial_device {} # Debian cloud images log to the serial console
 
   # Immich originals stay on the HDD; vzdump doesn't include virtiofs shares, so they aren't copied into
-  # the nightly VM backup (their off-site copy is a separate job).
+  # the weekly VM backup (their off-site copy is a separate job).
   virtiofs {
     mapping = proxmox_hardware_mapping_dir.photos.name
   }
