@@ -6,6 +6,16 @@
     opts: defaults,noatime,nofail
     state: mounted
 
+- name: HDD spindown timer (applied at boot by Debian's hdparm udev rule)
+  ansible.builtin.blockinfile:
+    path: /etc/hdparm.conf
+    marker: "# {mark} ANSIBLE MANAGED: HDD spindown"
+    block: |
+      /dev/disk/by-id/{{ pve_host_hdd_id }} {
+        spindown_time = {{ pve_host_hdd_spindown }}
+      }
+  notify: Apply HDD spindown timer
+
 - name: HDD directories
   ansible.builtin.file:
     path: "{{ pve_host_hdd_mountpoint }}/{{ item }}"

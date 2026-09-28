@@ -2,6 +2,10 @@ pve_host_upgrade: true
 
 pve_host_hdd_mountpoint: /mnt/hdd
 pve_host_hdd_dirs: [backups, media, photos]
+# hdparm -S: 1-240 = n*5 s, 241-251 = (n-240)*30 min. 242 = 1 h: with 1-2 users the HDD (photo originals,
+# movies, backups) is idle most of the day, and an hour keeps a film night or a photo session from spinning it
+# up and down repeatedly. smartd and the smartmon collector skip a sleeping disk (-n standby).
+pve_host_hdd_spindown: 242
 
 # Weekly: the HDD is otherwise idle at night; Immich also dumps its DB to the HDD nightly on its own.
 pve_host_backup_schedule: "sun 03:00"
