@@ -15,7 +15,7 @@ spec:
 #   prometheus:
 #     requires_auth: false  # LAN only; exports just the plug's entities
 #     filter:
-#       include_entity_globs: [sensor.homelab_plug_p115*]
+#       include_entity_globs: [sensor.homelab_plug_*]  # entities from the Tapo integration
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMStaticScrape
 metadata:

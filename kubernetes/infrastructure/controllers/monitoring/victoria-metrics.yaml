@@ -109,6 +109,13 @@ spec:
               - bot_token_file: /etc/vm/secrets/telegram/bot-token
                 chat_id: 60383518 # private chat with the bot; a user ID, only usable with the token
                 send_resolved: true
+                # One short block per alert instead of the default label dump. Plain text: annotations can
+                # contain characters that break Telegram's HTML parsing, and then nothing is delivered.
+                parse_mode: ""
+                message: |-
+                  {{ range .Alerts }}{{ if eq .Status "firing" }}🔥{{ else }}✅{{ end }} {{ .Labels.alertname }}{{ with .Labels.instance }} · {{ . }}{{ end }}
+                  {{ with .Annotations.summary }}{{ . }}{{ else }}{{ .Annotations.description }}{{ end }}
+                  {{ end }}
 
     grafana:
       admin:
