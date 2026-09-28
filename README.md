@@ -56,6 +56,7 @@ AdGuard and Jellyfin live outside the cluster on purpose ([ADR 0002](docs/adr/00
 | | Service | URL | Runs on |
 |---|---|---|---|
 | <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/immich.svg" width="20"> | Immich | `photos.lab.egorras.net` | k3s |
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/pinchflat.png" width="20"> | Pinchflat (YouTube → Jellyfin) | `youtube.lab.egorras.net` | k3s |
 | <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyfin.svg" width="20"> | Jellyfin | `jellyfin.lab.egorras.net` | LXC |
 | <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/home-assistant.svg" width="20"> | Home Assistant | LAN | VM (HAOS) |
 | <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/adguard-home.svg" width="20"> | AdGuard Home | `adguard.lab.egorras.net` | LXC |

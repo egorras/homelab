@@ -14,3 +14,5 @@ k3s_manifests: /var/lib/rancher/k3s/server/manifests
 
 # Host /mnt/hdd/photos, shared into this VM over virtiofs (tofu: proxmox_hardware_mapping_dir.photos).
 k3s_photos_mountpoint: /mnt/photos
+# Host /mnt/hdd/media/data/media (Jellyfin's library), virtiofs tag "media" (tofu: proxmox_hardware_mapping_dir.media).
+k3s_media_mountpoint: /mnt/media

@@ -18,6 +18,7 @@ spec:
         - https://map.lab.egorras.net
         - https://k8s.lab.egorras.net
         - https://photos.lab.egorras.net/api/server/ping
+        - https://youtube.lab.egorras.net/healthcheck
         - https://pve.lab.egorras.net # Traefik -> Proxmox (ServersTransport)
         - http://192.168.0.241/ # AdGuard UI
         - http://192.168.0.242:8096/health # Jellyfin

@@ -10,6 +10,18 @@ resource "proxmox_hardware_mapping_dir" "photos" {
   ]
 }
 
+# Jellyfin's media library (also bind-mounted read-only into its LXC); k3s apps write into subfolders (youtube/).
+resource "proxmox_hardware_mapping_dir" "media" {
+  name    = "media"
+  comment = "Jellyfin media library (HDD). Managed by OpenTofu."
+  map = [
+    {
+      node = local.node
+      path = "/mnt/hdd/media/data/media"
+    },
+  ]
+}
+
 resource "proxmox_virtual_environment_vm" "k3s" {
   name        = "k3s"
   description = "k3s: all apps, reconciled by Flux. Managed by OpenTofu."
@@ -56,10 +68,13 @@ resource "proxmox_virtual_environment_vm" "k3s" {
 
   serial_device {} # Debian cloud images log to the serial console
 
-  # Immich originals stay on the HDD; vzdump doesn't include virtiofs shares, so they aren't copied into
-  # the weekly VM backup (their off-site copy is a separate job).
+  # Immich originals and the media library stay on the HDD; vzdump doesn't include virtiofs shares, so they
+  # aren't copied into the weekly VM backup (their off-site copy is a separate job).
   virtiofs {
     mapping = proxmox_hardware_mapping_dir.photos.name
+  }
+  virtiofs {
+    mapping = proxmox_hardware_mapping_dir.media.name
   }
 
   operating_system {
