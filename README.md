@@ -53,26 +53,43 @@ AdGuard and Jellyfin live outside the cluster on purpose ([ADR 0002](docs/adr/00
 
 ## 🧩 Services
 
+`*.lab.egorras.net` is LAN / tailnet only, with a wildcard Let's Encrypt cert (DNS-01 via Cloudflare).
+Alerts go to Telegram.
+
+**Media**
+
 | | Service | URL | Runs on |
 |---|---|---|---|
-| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/immich.svg" width="20"> | Immich | `photos.lab.egorras.net` | k3s |
-| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/pinchflat.png" width="20"> | Pinchflat (YouTube → Jellyfin) | `youtube.lab.egorras.net` | k3s |
 | <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyseerr.svg" width="20"> | Jellyseerr (requests → Sonarr/Radarr) | `requests.lab.egorras.net` | k3s |
 | <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/sonarr.svg" width="20"> | Sonarr (TV) | `sonarr.lab.egorras.net` | k3s |
 | <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/radarr.svg" width="20"> | Radarr (movies) | `radarr.lab.egorras.net` | k3s |
 | <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/prowlarr.svg" width="20"> | Prowlarr (indexers) | `prowlarr.lab.egorras.net` | k3s |
 | <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qbittorrent.svg" width="20"> | qBittorrent (behind PIA VPN) | `qbittorrent.lab.egorras.net` | k3s |
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/pinchflat.png" width="20"> | Pinchflat (YouTube → Jellyfin) | `youtube.lab.egorras.net` | k3s |
 | <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyfin.svg" width="20"> | Jellyfin | `jellyfin.lab.egorras.net` | LXC |
+
+**Photos**
+
+| | Service | URL | Runs on |
+|---|---|---|---|
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/immich.svg" width="20"> | Immich | `photos.lab.egorras.net` | k3s |
+
+**Home**
+
+| | Service | URL | Runs on |
+|---|---|---|---|
 | <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/home-assistant.svg" width="20"> | Home Assistant | LAN | VM (HAOS) |
 | <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/adguard-home.svg" width="20"> | AdGuard Home | `adguard.lab.egorras.net` | LXC |
+
+**Platform**
+
+| | Service | URL | Runs on |
+|---|---|---|---|
 | <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/homepage.svg" width="20"> | Homepage | `home.lab.egorras.net` | k3s |
 | <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/grafana.svg" width="20"> | Grafana + VictoriaMetrics | `grafana.lab.egorras.net` | k3s |
 | <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/headlamp.svg" width="20"> | Headlamp | `k8s.lab.egorras.net` | k3s |
 | 🗺️ | Homelable (network map) | `map.lab.egorras.net` | k3s |
 | <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/proxmox.svg" width="20"> | Proxmox VE | `pve.lab.egorras.net` | bare metal |
-
-`*.lab.egorras.net` is LAN / tailnet only, with a wildcard Let's Encrypt cert (DNS-01 via Cloudflare).
-Alerts go to Telegram.
 
 ## 🖥️ Hardware
 
@@ -108,4 +125,4 @@ lab only as an ephemeral, ACL-limited Tailscale node ([ADR 0003](docs/adr/0003-c
 
 ## 📚 Docs
 
-[Roadmap & status](PLAN.md) · [Decisions (ADRs)](docs/adr) · [Runbooks](docs/runbooks)
+[Decisions (ADRs)](docs/adr) · [Runbooks](docs/runbooks)
