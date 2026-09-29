@@ -1,0 +1,77 @@
+# Request UI: family picks a movie/show here (syncs with Jellyfin for what's already available) instead of
+# anyone touching Sonarr/Radarr directly. Image is the seerr-team community fork (Jellyseerr's successor after
+# it went unmaintained) - same UI/API, carried over from the previous lab's working config.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyseerr
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate # single node + ReadWriteOnce volumes: never run two copies
+  selector:
+    matchLabels:
+      app: jellyseerr
+  template:
+    metadata:
+      labels:
+        app: jellyseerr
+    spec:
+      containers:
+        - name: jellyseerr
+          image: ghcr.io/seerr-team/seerr:v3.4.1
+          env:
+            - {name: TZ, value: Europe/Berlin}
+          ports:
+            - {name: http, containerPort: 5055}
+          readinessProbe:
+            httpGet: {path: /api/v1/status, port: http}
+          resources:
+            requests: {cpu: 20m, memory: 128Mi}
+            limits: {memory: 512Mi}
+          volumeMounts:
+            - {name: config, mountPath: /app/config}
+      volumes:
+        - name: config
+          persistentVolumeClaim: {claimName: jellyseerr-config}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyseerr-config
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyseerr
+spec:
+  selector:
+    app: jellyseerr
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jellyseerr
+spec:
+  rules:
+    - host: requests.lab.egorras.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jellyseerr
+                port:
+                  name: http
+  tls:
+    - hosts: [requests.lab.egorras.net]

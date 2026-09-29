@@ -27,9 +27,21 @@
   ansible.builtin.file:
     path: "{{ pve_host_hdd_mountpoint }}/{{ pve_host_media_dir }}/youtube"
     state: directory
-    owner: "{{ pve_host_youtube_uid }}"
-    group: "{{ pve_host_youtube_uid }}"
+    owner: "{{ pve_host_media_uid }}"
+    group: "{{ pve_host_media_uid }}"
     mode: "0755"
+
+# qBittorrent downloads here and Sonarr/Radarr import (hardlink) into movies/tv, all on this one filesystem so the
+# import is instant and uses no extra space. Same share as youtube/ above; Jellyfin's ro bind mount only turns
+# movies/ and tv/ into libraries, so downloads/ never gets scanned.
+- name: Media stack folders (qBittorrent downloads, Sonarr/Radarr libraries)
+  ansible.builtin.file:
+    path: "{{ pve_host_hdd_mountpoint }}/{{ pve_host_media_dir }}/{{ item }}"
+    state: directory
+    owner: "{{ pve_host_media_uid }}"
+    group: "{{ pve_host_media_uid }}"
+    mode: "0755"
+  loop: [downloads, movies, tv]
 
 - name: Allow snippets and disk imports on local storage
   ansible.builtin.command: pvesm set local --content iso,vztmpl,backup,snippets,import

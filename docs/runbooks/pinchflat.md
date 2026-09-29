@@ -8,7 +8,7 @@ playlists you add; Jellyfin shows them as a Shows library, one show per channel.
 | Videos, `.nfo`, thumbnails, channel posters | HDD `/mnt/hdd/media/data/media/youtube` → virtiofs `media` → k3s VM `/mnt/media/youtube` → `/downloads`; Jellyfin LXC sees it read-only at `/data/media/youtube` |
 | Settings, sources, SQLite DB | PVC `pinchflat-config` on the VM disk (weekly vzdump) |
 
-The folder is owned by uid 1000 (`pve_host_youtube_uid`), the user Pinchflat runs as. No backup: everything here
+The folder is owned by uid 1000 (`pve_host_media_uid`), the user Pinchflat runs as. No backup: everything here
 can be downloaded again.
 
 ## First setup (once, in the Pinchflat UI)
