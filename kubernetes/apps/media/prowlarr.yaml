@@ -1,0 +1,79 @@
+# Prowlarr: one place to manage indexers, pushed out to Sonarr/Radarr over their APIs. No /mnt/media mount -
+# it never touches files, just talks to indexers and to Sonarr/Radarr/qBittorrent's APIs.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prowlarr
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate # single node + ReadWriteOnce volumes: never run two copies
+  selector:
+    matchLabels:
+      app: prowlarr
+  template:
+    metadata:
+      labels:
+        app: prowlarr
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+        - name: prowlarr
+          image: lscr.io/linuxserver/prowlarr:2.6.5.5623-ls161
+          env:
+            - {name: TZ, value: Europe/Berlin}
+          ports:
+            - {name: http, containerPort: 9696}
+          readinessProbe:
+            httpGet: {path: /ping, port: http}
+          resources:
+            requests: {cpu: 20m, memory: 128Mi}
+            limits: {memory: 512Mi}
+          volumeMounts:
+            - {name: config, mountPath: /config}
+      volumes:
+        - name: config
+          persistentVolumeClaim: {claimName: prowlarr-config}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prowlarr-config
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prowlarr
+spec:
+  selector:
+    app: prowlarr
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: prowlarr
+spec:
+  rules:
+    - host: prowlarr.lab.egorras.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: prowlarr
+                port:
+                  name: http
+  tls:
+    - hosts: [prowlarr.lab.egorras.net]

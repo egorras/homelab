@@ -1,0 +1,131 @@
+# Gluetun opens a PIA VPN tunnel and firewalls the pod to it (kill switch); qBittorrent shares the pod's network
+# namespace so it has no route out except through the tunnel. Settings carried over from the previous lab's
+# docker-compose stack, which spent a while narrowing these down:
+#   - VPN_TYPE openvpn: PIA has no native WireGuard support in gluetun.
+#   - SERVER_REGIONS Netherlands: the only region that was reachable on :501 from that ISP.
+#   - OPENVPN_PROTOCOL tcp: UDP's handshake was silently dropped, likely ISP throttling.
+# All of these may not hold for this ISP/location - if the tunnel won't come up, that's the first place to look
+# (docs/runbooks/media.md).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qbittorrent
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate # single node + ReadWriteOnce volumes: never run two copies
+  selector:
+    matchLabels:
+      app: qbittorrent
+  template:
+    metadata:
+      labels:
+        app: qbittorrent
+    spec:
+      containers:
+        - name: gluetun
+          image: qmcgaw/gluetun:v3.40.0
+          securityContext:
+            capabilities:
+              add: [NET_ADMIN] # needed to bring up the tun interface and set firewall rules
+          env:
+            - {name: VPN_SERVICE_PROVIDER, value: private internet access}
+            - {name: VPN_TYPE, value: openvpn}
+            - {name: SERVER_REGIONS, value: Netherlands}
+            - {name: OPENVPN_PROTOCOL, value: tcp}
+            - {name: OPENVPN_CIPHERS, value: aes-256-gcm}
+            - {name: UPDATER_PERIOD, value: 24h} # refresh PIA's server list; the embedded one goes stale
+            - {name: VPN_PORT_FORWARDING, value: "on"} # PIA hands back an open port; not yet synced into qBittorrent's listen port (manual, see runbook)
+            - {name: FIREWALL_INPUT_PORTS, value: "8080"} # qBittorrent WebUI, reachable from other pods/Ingress
+            - {name: FIREWALL_OUTBOUND_SUBNETS, value: "10.42.0.0/16,10.43.0.0/16"} # k3s pod + service CIDRs
+            - {name: HEALTH_VPN_DURATION_INITIAL, value: 60s} # give OpenVPN time to finish the handshake
+            - {name: TZ, value: Europe/Berlin}
+            - name: OPENVPN_USER
+              valueFrom: {secretKeyRef: {name: qbittorrent-pia, key: OPENVPN_USER}}
+            - name: OPENVPN_PASSWORD
+              valueFrom: {secretKeyRef: {name: qbittorrent-pia, key: OPENVPN_PASSWORD}}
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {memory: 256Mi}
+          volumeMounts:
+            - {name: tun, mountPath: /dev/net/tun}
+            - {name: gluetun-data, mountPath: /gluetun} # persists the refreshed server list + forwarded port
+        - name: qbittorrent
+          image: lscr.io/linuxserver/qbittorrent:5.2.3_v2.0.14-ls477
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+          env:
+            - {name: TZ, value: Europe/Berlin}
+            - {name: WEBUI_PORT, value: "8080"}
+          ports:
+            - {name: http, containerPort: 8080}
+          readinessProbe: # not httpGet: the WebUI can answer 401 before login is set up, which would fail that probe
+            tcpSocket:
+              port: http
+          resources:
+            requests: {cpu: 50m, memory: 128Mi}
+            limits: {memory: 512Mi}
+          volumeMounts:
+            - {name: config, mountPath: /config}
+            - {name: media, mountPath: /data} # same absolute path as Sonarr/Radarr -> imports are hardlinks
+      volumes:
+        - name: tun
+          hostPath: {path: /dev/net/tun, type: CharDevice}
+        - name: gluetun-data
+          persistentVolumeClaim: {claimName: gluetun-data}
+        - name: config
+          persistentVolumeClaim: {claimName: qbittorrent-config}
+        - name: media
+          hostPath: {path: /mnt/media, type: Directory} # exists only when the HDD share is mounted (pve.yml)
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gluetun-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: qbittorrent-config
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent
+spec:
+  selector:
+    app: qbittorrent
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: qbittorrent
+spec:
+  rules:
+    - host: qbittorrent.lab.egorras.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: qbittorrent
+                port:
+                  name: http
+  tls:
+    - hosts: [qbittorrent.lab.egorras.net]

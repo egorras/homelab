@@ -19,6 +19,11 @@ spec:
         - https://k8s.lab.egorras.net
         - https://photos.lab.egorras.net/api/server/ping
         - https://youtube.lab.egorras.net/healthcheck
+        - https://sonarr.lab.egorras.net/ping
+        - https://radarr.lab.egorras.net/ping
+        - https://prowlarr.lab.egorras.net/ping
+        - https://requests.lab.egorras.net/api/v1/status
+        # qBittorrent isn't probed here: its WebUI can 401 before first login, which would page for no reason.
         - https://pve.lab.egorras.net # Traefik -> Proxmox (ServersTransport)
         - http://192.168.0.241/ # AdGuard UI
         - http://192.168.0.242:8096/health # Jellyfin

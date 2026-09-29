@@ -25,6 +25,31 @@
         href: https://pve.lab.egorras.net
         icon: proxmox.svg
         siteMonitor: https://pve.lab.egorras.net
+- Media:
+    - Requests:
+        href: https://requests.lab.egorras.net
+        icon: jellyseerr.svg
+        description: Ask for a movie/show (Jellyseerr)
+        siteMonitor: http://jellyseerr.media.svc/api/v1/status
+    - Sonarr:
+        href: https://sonarr.lab.egorras.net
+        icon: sonarr.svg
+        description: TV
+        siteMonitor: http://sonarr.media.svc/ping
+    - Radarr:
+        href: https://radarr.lab.egorras.net
+        icon: radarr.svg
+        description: Movies
+        siteMonitor: http://radarr.media.svc/ping
+    - Prowlarr:
+        href: https://prowlarr.lab.egorras.net
+        icon: prowlarr.svg
+        description: Indexers
+        siteMonitor: http://prowlarr.media.svc/ping
+    - qBittorrent:
+        href: https://qbittorrent.lab.egorras.net
+        icon: qbittorrent.svg
+        description: Downloads (behind PIA VPN)
 - Platform:
     - Grafana:
         href: https://grafana.lab.egorras.net

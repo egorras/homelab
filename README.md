@@ -57,6 +57,11 @@ AdGuard and Jellyfin live outside the cluster on purpose ([ADR 0002](docs/adr/00
 |---|---|---|---|
 | <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/immich.svg" width="20"> | Immich | `photos.lab.egorras.net` | k3s |
 | <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/pinchflat.png" width="20"> | Pinchflat (YouTube → Jellyfin) | `youtube.lab.egorras.net` | k3s |
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyseerr.svg" width="20"> | Jellyseerr (requests → Sonarr/Radarr) | `requests.lab.egorras.net` | k3s |
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/sonarr.svg" width="20"> | Sonarr (TV) | `sonarr.lab.egorras.net` | k3s |
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/radarr.svg" width="20"> | Radarr (movies) | `radarr.lab.egorras.net` | k3s |
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/prowlarr.svg" width="20"> | Prowlarr (indexers) | `prowlarr.lab.egorras.net` | k3s |
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qbittorrent.svg" width="20"> | qBittorrent (behind PIA VPN) | `qbittorrent.lab.egorras.net` | k3s |
 | <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyfin.svg" width="20"> | Jellyfin | `jellyfin.lab.egorras.net` | LXC |
 | <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/home-assistant.svg" width="20"> | Home Assistant | LAN | VM (HAOS) |
 | <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/adguard-home.svg" width="20"> | AdGuard Home | `adguard.lab.egorras.net` | LXC |

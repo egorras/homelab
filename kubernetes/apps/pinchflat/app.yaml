@@ -24,7 +24,7 @@ spec:
         app: pinchflat
     spec:
       securityContext:
-        # Owner of the youtube folder on the host (pve_host_youtube_uid); Jellyfin reads it as "other" (umask 022).
+        # Owner of the youtube folder on the host (pve_host_media_uid); Jellyfin reads it as "other" (umask 022).
         runAsUser: 1000
         runAsGroup: 1000
       containers:
