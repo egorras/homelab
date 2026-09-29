@@ -54,6 +54,13 @@ Sonarr/Radarr, Jellyfin's Movies/Shows libraries) is done. What's left needs you
 3. Request something in Jellyseerr (https://requests.lab.egorras.net) and confirm it flows through: Sonarr/
    Radarr's queue → qBittorrent → (after import) the Jellyfin library.
 
+## RuTracker (and other Cloudflare-fronted indexers)
+RuTracker's `login.php` returns 403 "Just a moment..." to any plain HTTP client - it's Cloudflare's JS
+challenge in front of the site, not bad credentials. `flaresolverr.yaml` runs a headless-Chromium solver for
+this; in Prowlarr add it once as an Indexer Proxy (Settings → Indexer Proxies → FlareSolverr, host
+`http://flaresolverr:8191/`), then set RuTracker's indexer to use that proxy. Same fix applies to any other
+indexer stuck behind a Cloudflare challenge - just point its proxy field at FlareSolverr too.
+
 ## Troubleshooting
 - `qbittorrent` pod stuck `ContainerCreating`, `hostPath type check failed` on `/dev/net/tun` or `/mnt/media`:
   the media share isn't mounted on the VM (`findmnt /mnt/media`), or the node's `tun` kernel module isn't

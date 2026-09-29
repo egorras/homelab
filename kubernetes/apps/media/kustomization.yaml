@@ -5,6 +5,7 @@ resources:
   - namespace.yaml
   - qbittorrent.yaml
   - prowlarr.yaml
+  - flaresolverr.yaml
   - sonarr.yaml
   - radarr.yaml
   - jellyseerr.yaml

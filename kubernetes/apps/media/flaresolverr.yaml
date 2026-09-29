@@ -1,0 +1,46 @@
+# Solves Cloudflare's JS challenge for Prowlarr (RuTracker's login.php returns 403 "Just a moment..." on
+# every mirror - confirmed by curling it directly, same as the previous lab found). Internal only, no
+# Ingress: only Prowlarr talks to it, as an Indexer Proxy scoped to the indexers tagged `flaresolverr`
+# (docs/runbooks/media.md). Stateless - no PVC, no persisted state.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flaresolverr
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate # single node: never run two copies
+  selector:
+    matchLabels:
+      app: flaresolverr
+  template:
+    metadata:
+      labels:
+        app: flaresolverr
+    spec:
+      containers:
+        - name: flaresolverr
+          image: ghcr.io/flaresolverr/flaresolverr:v3.5.2
+          env:
+            - {name: TZ, value: Europe/Berlin}
+            - {name: LOG_LEVEL, value: info}
+          ports:
+            - {name: http, containerPort: 8191}
+          readinessProbe:
+            httpGet: {path: /, port: http}
+            initialDelaySeconds: 10 # headless Chromium takes a moment to come up
+          resources:
+            requests: {cpu: 50m, memory: 256Mi}
+            limits: {memory: 768Mi} # headless Chromium; leave headroom like the previous lab did
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flaresolverr
+spec:
+  selector:
+    app: flaresolverr
+  ports:
+    - name: http
+      port: 8191
+      targetPort: http
