@@ -1,0 +1,7 @@
+# The *arr media stack (docs/runbooks/media.md): qBittorrent behind a VPN, Prowlarr/Sonarr/Radarr, Jellyseerr.
+# One namespace, like the old docker-compose stack it replaces - these apps talk to each other constantly
+# (indexers, downloads, imports) and share the /mnt/media hostPath, so splitting them per-app buys nothing.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: media
