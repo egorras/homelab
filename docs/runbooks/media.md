@@ -29,33 +29,30 @@ printf 'apiVersion: v1\nkind: Secret\nmetadata:\n  name: qbittorrent-pia\nstring
 ```
 Use PIA's generated `pXXXXXXX` username, not your email - that's what OpenVPN auth expects.
 
-## No per-app login
-Everything here is LAN + Tailscale only, so auth is turned off per app rather than juggling five separate
-accounts (the same trust model as the rest of this lab). One-time, in each app's own UI after first deploy:
-- **Sonarr / Radarr / Prowlarr**: Settings → General → Security → Authentication: **Disabled**.
-- **qBittorrent**: Settings → WebUI → check "Bypass authentication for clients on localhost" and add
-  `10.42.0.0/16,10.43.0.0/16,192.168.0.0/24` (k3s pod/service CIDRs + LAN) under "Bypass authentication for
-  clients in whitelisted IP subnets". The container starts with a random generated password (`docker logs`
-  equivalent: `kubectl -n media logs deploy/qbittorrent -c qbittorrent | grep -i password`) - use that once to
-  get in and flip the setting.
-- **Jellyseerr**: has no separate concept of "no auth" - sign in once with your Jellyfin account (Settings →
-  Users → import), everyone else on the LAN can be added the same way or just share that one login.
+## Login: one shared account, not "no login"
+Sonarr/Radarr/Prowlarr stopped allowing auth to be fully disabled a while back (reacting to exposed-instance
+scans) - the closest option is "Disabled for Local Addresses", but that only exempts literal loopback
+connections. Traffic through Traefik never qualifies (these apps only ever see Traefik's own connection, not
+the original client), so in practice **auth is always enforced** for anything reached via `*.lab.egorras.net`.
+To avoid that meaning three different logins, Sonarr/Radarr/Prowlarr run `authenticationRequired: enabled` with
+the same shared username/password. Change it in any of the three (Settings → General → Security) and update the
+others to match if you want a different one - nothing requires them to stay in sync except convenience.
+
+- **qBittorrent**: does still support a real subnet-based bypass (Settings → WebUI → "Bypass authentication for
+  clients in whitelisted IP subnets", `10.42.0.0/16,10.43.0.0/16,192.168.0.0/24`), but it's set up with its own
+  separate login instead, for the same reason - simpler to reason about than a bypass rule.
+- **Jellyseerr**: no separate account system - it signs you in through Jellyfin directly, and whichever Jellyfin
+  user connects it first becomes the Jellyseerr admin. Everyone else signs in with their own Jellyfin account.
 
 ## First setup
-1. **Prowlarr**: Settings → Indexers → add your trackers. Settings → Apps → add Sonarr and Radarr (URLs
-   `http://sonarr.media.svc:80` / `http://radarr.media.svc:80`, API keys from each app's Settings → General).
-2. **qBittorrent**: Settings → Downloads → default save path `/data/downloads`. Categories `tv` and `movies`
-   get created automatically once Sonarr/Radarr add the download client.
-3. **Sonarr / Radarr**: Settings → Download Clients → add qBittorrent (`http://qbittorrent.media.svc:80`, same
-   category names as above). Settings → Media Management → root folder `/data/tv` (Sonarr) / `/data/movies`
-   (Radarr).
-4. **Jellyseerr**: Settings → Jellyfin (server + login), Settings → Services → add Sonarr and Radarr (URLs +
-   API keys as above, matching root folders/quality profiles).
-
-## Jellyfin libraries (once)
-Dashboard → Libraries → Add Media Library:
-- content type **Shows**, name `TV Shows`, folder `/data/media/tv`;
-- content type **Movies**, name `Movies`, folder `/data/media/movies`.
+Wiring (Prowlarr↔Sonarr/Radarr, Sonarr/Radarr↔qBittorrent download client + categories, Jellyseerr↔Jellyfin +
+Sonarr/Radarr, Jellyfin's Movies/Shows libraries) is done. What's left needs your own accounts/preferences:
+1. **Prowlarr**: Settings → Indexers → add your trackers; Prowlarr pushes them to Sonarr/Radarr automatically
+   (Settings → Apps already lists both).
+2. Quality profile defaults to `HD-1080p` everywhere (Sonarr/Radarr Settings → Profiles, and Jellyseerr's
+   Settings → Services uses the same one) - change it in both places together if you want something else.
+3. Request something in Jellyseerr (https://requests.lab.egorras.net) and confirm it flows through: Sonarr/
+   Radarr's queue → qBittorrent → (after import) the Jellyfin library.
 
 ## Troubleshooting
 - `qbittorrent` pod stuck `ContainerCreating`, `hostPath type check failed` on `/dev/net/tun` or `/mnt/media`:
