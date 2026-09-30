@@ -10,11 +10,18 @@ valid certificate (the wildcard, served by Traefik by default).
    ```
 2. In `kubernetes/apps/<name>/app.yaml` set the image (a pinned tag, never `latest`), the container `PORT`, the
    readiness probe path, resources, and uncomment the PVC if the app keeps data.
-3. Secrets, if any (from WSL/Linux, repo root). This pipes straight into SOPS, so nothing lands on disk in plain text:
+3. Secrets, if any (repo root). This pipes straight into SOPS, so nothing lands on disk in plain text. The age
+   recipients are given explicitly (`--config /dev/null` skips `.sops.yaml`'s path-regex rules) because on a
+   native Windows `sops.exe`, `--filename-override` alone doesn't match the `kubernetes/.*` rule — the path gets
+   backslash-normalized first, so it silently falls through to the single-admin-key rule and Flux can't decrypt
+   the result in-cluster. Keep these two keys in sync with the first rule in `.sops.yaml` if they ever rotate:
    ```sh
    printf 'apiVersion: v1\nkind: Secret\nmetadata:\n  name: <name>\nstringData:\n  KEY: %s\n' "$VALUE" \
-     | sops -e --input-type yaml --output-type yaml \
-         --filename-override kubernetes/apps/<name>/secret.sops.yaml /dev/stdin \
+     | sops --config /dev/null encrypt \
+         --age "age14uzygqz0hgepvwphdrsualggykr8wpesulf29vphwzhr6ttxafhqmsjpgs,age1pme5neke5tpnfllq03gmp7595ldn3azkaw8qna557t0r94f604lsg2yluv" \
+         --encrypted-regex '^(data|stringData)$' \
+         --input-type yaml --output-type yaml \
+         --filename-override kubernetes/apps/<name>/secret.sops.yaml \
      > kubernetes/apps/<name>/secret.sops.yaml
    ```
    Add `- secret.sops.yaml` to the app's `kustomization.yaml`; reference it with `envFrom`/`secretKeyRef`.
