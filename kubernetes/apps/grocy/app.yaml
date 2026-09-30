@@ -30,6 +30,7 @@ spec:
             # before dropping to this uid/gid - runAsUser here breaks it (500s, permission denied).
             - {name: PUID, value: "1000"}
             - {name: PGID, value: "1000"}
+            - {name: GROCY_CURRENCY, value: EUR} # overrides the config.php default; GROCY_* env vars take priority
           ports:
             - {name: http, containerPort: 80}
           readinessProbe: # no documented health path
