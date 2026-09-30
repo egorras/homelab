@@ -30,66 +30,73 @@ Single-node home lab defined entirely in this repo: **push to `main` → it's de
 
 ```mermaid
 flowchart LR
-  git[(github.com/egorras/homelab)]
-  ci[GitHub Actions<br/>ephemeral tailnet node]
+  you((you<br/>LAN / tailnet))
+
+  subgraph gitops[GitOps]
+    direction TB
+    git[(github.com/egorras/homelab)]
+    ci[GitHub Actions<br/>ephemeral tailnet node]
+  end
 
   subgraph home[Proxmox host · Fujitsu D958]
-    k3s[VM k3s<br/>all apps]
-    adguard[LXC adguard<br/>DNS]
-    jellyfin[LXC jellyfin<br/>iGPU QSV]
-    haos[VM haos<br/>Home Assistant]
+    direction TB
+    k3s[VM: k3s<br/>all apps]
+    adguard[LXC: adguard<br/>DNS]
+    jellyfin[LXC: jellyfin<br/>iGPU QSV]
+    haos[VM: haos<br/>Home Assistant]
   end
 
   oracle[Oracle Cloud VPS<br/>2nd Flux cluster]
 
-  git -- "Flux pulls (~1 min)" --> k3s
-  git -- "PR: plan · merge: apply" --> ci
-  ci -- "Tailscale: tofu + ansible" --> home
+  git -- "Flux pulls<br/>(~1 min)" --> k3s
+  git -- "PR → plan<br/>merge → apply" --> ci
+  ci -- "tofu + ansible<br/>over Tailscale" --> home
+  you -- "https" --> k3s & adguard & jellyfin & haos
   git -. planned .-> oracle
-  oracle -. probes .-> home
+  oracle -. health probes .-> home
 ```
 
 AdGuard and Jellyfin live outside the cluster on purpose ([ADR 0002](docs/adr/0002-services-outside-the-cluster.md)).
 
 ## 🧩 Services
 
-`*.lab.egorras.net` is LAN / tailnet only, with a wildcard Let's Encrypt cert (DNS-01 via Cloudflare).
-Alerts go to Telegram.
+Everything's reachable over LAN / tailnet only, behind a wildcard subdomain with a Let's Encrypt cert
+(DNS-01 via Cloudflare). Alerts go to Telegram.
 
 **Media**
 
-| | Service | URL | Runs on |
-|---|---|---|---|
-| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyseerr.svg" width="20"> | Jellyseerr (requests → Sonarr/Radarr) | `requests.lab.egorras.net` | k3s |
-| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/sonarr.svg" width="20"> | Sonarr (TV) | `sonarr.lab.egorras.net` | k3s |
-| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/radarr.svg" width="20"> | Radarr (movies) | `radarr.lab.egorras.net` | k3s |
-| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/prowlarr.svg" width="20"> | Prowlarr (indexers) | `prowlarr.lab.egorras.net` | k3s |
-| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qbittorrent.svg" width="20"> | qBittorrent (behind PIA VPN) | `qbittorrent.lab.egorras.net` | k3s |
-| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/pinchflat.png" width="20"> | Pinchflat (YouTube → Jellyfin) | `youtube.lab.egorras.net` | k3s |
-| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyfin.svg" width="20"> | Jellyfin | `jellyfin.lab.egorras.net` | LXC |
+| | Service | Runs on |
+|---|---|---|
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyseerr.svg" width="20"> | Jellyseerr (requests → Sonarr/Radarr) | k3s |
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/sonarr.svg" width="20"> | Sonarr (TV) | k3s |
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/radarr.svg" width="20"> | Radarr (movies) | k3s |
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/prowlarr.svg" width="20"> | Prowlarr (indexers) | k3s |
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qbittorrent.svg" width="20"> | qBittorrent (behind PIA VPN) | k3s |
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/pinchflat.png" width="20"> | Pinchflat (YouTube → Jellyfin) | k3s |
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyfin.svg" width="20"> | Jellyfin | LXC |
 
 **Photos**
 
-| | Service | URL | Runs on |
-|---|---|---|---|
-| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/immich.svg" width="20"> | Immich | `photos.lab.egorras.net` | k3s |
+| | Service | Runs on |
+|---|---|---|
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/immich.svg" width="20"> | Immich | k3s |
 
 **Home**
 
-| | Service | URL | Runs on |
-|---|---|---|---|
-| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/home-assistant.svg" width="20"> | Home Assistant | LAN | VM (HAOS) |
-| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/adguard-home.svg" width="20"> | AdGuard Home | `adguard.lab.egorras.net` | LXC |
+| | Service | Runs on |
+|---|---|---|
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/home-assistant.svg" width="20"> | Home Assistant | VM (HAOS) |
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/adguard-home.svg" width="20"> | AdGuard Home | LXC |
 
 **Platform**
 
-| | Service | URL | Runs on |
-|---|---|---|---|
-| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/homepage.svg" width="20"> | Homepage | `home.lab.egorras.net` | k3s |
-| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/grafana.svg" width="20"> | Grafana + VictoriaMetrics | `grafana.lab.egorras.net` | k3s |
-| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/headlamp.svg" width="20"> | Headlamp | `k8s.lab.egorras.net` | k3s |
-| 🗺️ | Homelable (network map) | `map.lab.egorras.net` | k3s |
-| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/proxmox.svg" width="20"> | Proxmox VE | `pve.lab.egorras.net` | bare metal |
+| | Service | Runs on |
+|---|---|---|
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/homepage.svg" width="20"> | Homepage | k3s |
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/grafana.svg" width="20"> | Grafana + VictoriaMetrics | k3s |
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/headlamp.svg" width="20"> | Headlamp | k3s |
+| 🗺️ | Homelable (network map) | k3s |
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/proxmox.svg" width="20"> | Proxmox VE | bare metal |
 
 ## 🖥️ Hardware
 
