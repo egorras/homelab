@@ -1,0 +1,71 @@
+# Immich's ML worker, split out from kubernetes/apps/immich (docs/adr/0005): home's immich-server/microservices
+# call this over Tailscale for smart search and face recognition. No photo library here, no Postgres - just
+# model weights, fetched from immich-server per request and thrown away after. Version must match the home
+# Immich release (kubernetes/apps/immich/app.yaml).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: immich-ml
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-model-cache
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: immich-machine-learning
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: immich-machine-learning
+  template:
+    metadata:
+      labels:
+        app: immich-machine-learning
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: machine-learning
+          image: ghcr.io/immich-app/immich-machine-learning:v3.2.2 # CPU only; keep in sync with home's Immich version
+          ports:
+            - name: http
+              containerPort: 3003
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: http
+          resources:
+            requests: {cpu: 100m, memory: 512Mi}
+            limits: {cpu: 1500m, memory: 4Gi}
+          volumeMounts:
+            - name: cache
+              mountPath: /cache
+      volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: immich-model-cache
+---
+# NodePort, not ClusterIP: home reaches this over Tailscale by the VPS's tailnet IP, not via in-cluster DNS.
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich-machine-learning
+spec:
+  type: NodePort
+  selector:
+    app: immich-machine-learning
+  ports:
+    - name: http
+      port: 3003
+      targetPort: http
+      nodePort: 30003

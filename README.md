@@ -46,14 +46,15 @@ flowchart LR
     haos[VM: haos<br/>Home Assistant]
   end
 
-  oracle[Oracle Cloud VPS<br/>2nd Flux cluster]
+  oracle[Oracle Cloud VPS<br/>2nd Flux cluster<br/>Immich ML]
 
   git -- "Flux pulls<br/>(~1 min)" --> k3s
   git -- "PR → plan<br/>merge → apply" --> ci
   ci -- "tofu + ansible<br/>over Tailscale" --> home
   you -- "https" --> k3s & adguard & jellyfin & haos
-  git -. planned .-> oracle
-  oracle -. health probes .-> home
+  git -- "Flux pulls<br/>(~1 min)" --> oracle
+  k3s -- "Tailscale" --> oracle
+  oracle -. health probes: planned .-> home
 ```
 
 AdGuard and Jellyfin live outside the cluster on purpose ([ADR 0002](docs/adr/0002-services-outside-the-cluster.md)).
@@ -79,7 +80,7 @@ Everything's reachable over LAN / tailnet only, behind a wildcard subdomain with
 
 | | Service | Runs on |
 |---|---|---|
-| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/immich.svg" width="20"> | Immich | k3s |
+| <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/immich.svg" width="20"> | Immich (ML worker on the Oracle VPS) | k3s |
 
 **Home**
 

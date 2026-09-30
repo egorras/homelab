@@ -1,7 +1,9 @@
 # Immich (immich.app): photos and videos. https://photos.lab.egorras.net
 # Storage: originals, encoded video and weekly DB dumps on the HDD (host /mnt/hdd/photos, virtiofs -> VM
-# /mnt/photos -> /data); Postgres, thumbnails and ML models on the VM disk (NVMe). Restore/upgrade:
+# /mnt/photos -> /data); Postgres and thumbnails on the VM disk (NVMe). Restore/upgrade:
 # docs/runbooks/immich.md. Upgrades: read the release notes first, breaking changes are common.
+# ML worker runs on the Oracle VPS instead (docs/adr/0005, kubernetes/apps-oracle/immich-ml) - it doesn't
+# need the photo library locally, and it's the one piece of this app that's actually RAM/CPU-heavy.
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -28,16 +30,6 @@ spec:
   resources:
     requests:
       storage: 20Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: immich-model-cache
-spec:
-  accessModes: [ReadWriteOnce]
-  resources:
-    requests:
-      storage: 10Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -180,7 +172,8 @@ spec:
             - name: DB_PASSWORD
               valueFrom: {secretKeyRef: {name: immich, key: db-password}}
             - {name: REDIS_HOSTNAME, value: immich-valkey}
-            - {name: IMMICH_MACHINE_LEARNING_URL, value: "http://immich-machine-learning:3003"}
+            # Oracle VPS's Tailscale IP (docs/adr/0005); `tailscale status` on it if this ever needs to change.
+            - {name: IMMICH_MACHINE_LEARNING_URL, value: "http://100.83.54.16:30003"}
             - {name: IMMICH_WORKERS_INCLUDE, value: api}
             - {name: IMMICH_CONFIG_FILE, value: /config/config.yaml}
           ports:
@@ -265,7 +258,8 @@ spec:
             - name: DB_PASSWORD
               valueFrom: {secretKeyRef: {name: immich, key: db-password}}
             - {name: REDIS_HOSTNAME, value: immich-valkey}
-            - {name: IMMICH_MACHINE_LEARNING_URL, value: "http://immich-machine-learning:3003"}
+            # Oracle VPS's Tailscale IP (docs/adr/0005); `tailscale status` on it if this ever needs to change.
+            - {name: IMMICH_MACHINE_LEARNING_URL, value: "http://100.83.54.16:30003"}
             - {name: IMMICH_WORKERS_EXCLUDE, value: api}
             - {name: IMMICH_CONFIG_FILE, value: /config/config.yaml} # see immich-server
           resources:
@@ -291,56 +285,6 @@ spec:
         - name: thumbs
           persistentVolumeClaim:
             claimName: immich-thumbs
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: immich-machine-learning
-spec:
-  replicas: 1 # 0 together with immich-server
-  strategy:
-    type: Recreate
-  selector:
-    matchLabels:
-      app: immich-machine-learning
-  template:
-    metadata:
-      labels:
-        app: immich-machine-learning
-    spec:
-      enableServiceLinks: false
-      containers:
-        - name: machine-learning
-          image: ghcr.io/immich-app/immich-machine-learning:v3.2.2 # CPU only: the iGPU belongs to Jellyfin
-          ports:
-            - name: http
-              containerPort: 3003
-          readinessProbe:
-            httpGet:
-              path: /ping
-              port: http
-          resources:
-            requests: {cpu: 100m, memory: 512Mi}
-            limits: {cpu: 1500m, memory: 4Gi}
-          volumeMounts:
-            - name: cache
-              mountPath: /cache
-      volumes:
-        - name: cache
-          persistentVolumeClaim:
-            claimName: immich-model-cache
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: immich-machine-learning
-spec:
-  selector:
-    app: immich-machine-learning
-  ports:
-    - name: http
-      port: 3003
-      targetPort: http
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
