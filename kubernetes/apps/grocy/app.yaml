@@ -21,14 +21,15 @@ spec:
       labels:
         app: grocy
     spec:
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
       containers:
         - name: grocy
           image: lscr.io/linuxserver/grocy:v4.7.1-ls342
           env:
             - {name: TZ, value: Europe/Berlin}
+            # Unlike the .NET *arr apps, grocy's init needs to start as root to chown /config
+            # before dropping to this uid/gid - runAsUser here breaks it (500s, permission denied).
+            - {name: PUID, value: "1000"}
+            - {name: PGID, value: "1000"}
           ports:
             - {name: http, containerPort: 80}
           readinessProbe: # no documented health path
