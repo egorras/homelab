@@ -16,3 +16,5 @@ k3s_manifests: /var/lib/rancher/k3s/server/manifests
 k3s_photos_mountpoint: /mnt/photos
 # Host /mnt/hdd/media/data/media (Jellyfin's library), virtiofs tag "media" (tofu: proxmox_hardware_mapping_dir.media).
 k3s_media_mountpoint: /mnt/media
+# Host /mnt/hdd/books (BookOrbit's library), virtiofs tag "books" (tofu: proxmox_hardware_mapping_dir.books).
+k3s_books_mountpoint: /mnt/books
