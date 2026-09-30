@@ -120,6 +120,8 @@ spec:
               valueFrom: {secretKeyRef: {name: bookorbit, key: jwt-secret}}
             - name: SETUP_BOOTSTRAP_TOKEN
               valueFrom: {secretKeyRef: {name: bookorbit, key: setup-bootstrap-token}}
+            - name: BOOK_REQUEST_ENCRYPTION_KEY
+              valueFrom: {secretKeyRef: {name: bookorbit, key: book-request-encryption-key}}
             - {name: APP_URL, value: "https://books.lab.egorras.net"}
           ports:
             - name: http
