@@ -69,7 +69,9 @@ resource "proxmox_virtual_environment_container" "lxc" {
       }
     }
     dns {
-      servers = local.nameservers
+      # Jellyfin is outside k3s, so use AdGuard for homelab split-DNS names.
+      # Keep the router as fallback if AdGuard is unavailable.
+      servers = each.key == "jellyfin" ? [local.lab.guests.adguard.ip, local.gateway] : local.nameservers
     }
     user_account {
       keys = local.lab.admin_ssh_keys
