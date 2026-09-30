@@ -26,8 +26,8 @@ spec:
             - {name: TZ, value: Europe/Berlin}
           ports:
             - {name: http, containerPort: 9696}
-          readinessProbe:
-            httpGet: {path: /ping, port: http}
+          readinessProbe: # Host header must be localhost - Prowlarr's ASP.NET HostFiltering middleware 400s on the pod IP k8s sends by default
+            httpGet: {path: /ping, port: http, httpHeaders: [{name: Host, value: localhost}]}
           resources:
             requests: {cpu: 20m, memory: 128Mi}
             limits: {memory: 512Mi}
