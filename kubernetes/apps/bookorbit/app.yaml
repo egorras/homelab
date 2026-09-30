@@ -137,6 +137,8 @@ spec:
               mountPath: /books
             - name: data
               mountPath: /data
+            - name: downloads
+              mountPath: /downloads
       volumes:
         - name: books
           hostPath:
@@ -145,6 +147,12 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: bookorbit-data
+        - name: downloads
+          hostPath:
+            # same /mnt/media share qBittorrent writes to (media/qbittorrent.yaml), so the Requests download
+            # client's "books" category can be hardlinked straight into the Book Dock instead of copied.
+            path: /mnt/media/downloads/books
+            type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: Service
