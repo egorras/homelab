@@ -23,6 +23,7 @@ spec:
         - https://radarr.lab.egorras.net/ping
         - https://prowlarr.lab.egorras.net/ping
         - https://requests.lab.egorras.net/api/v1/status
+        - https://grocy.lab.egorras.net
         # qBittorrent isn't probed here: its WebUI can 401 before first login, which would page for no reason.
         - https://pve.lab.egorras.net # Traefik -> Proxmox (ServersTransport)
         - http://192.168.0.241/ # AdGuard UI

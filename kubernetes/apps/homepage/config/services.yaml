@@ -18,6 +18,11 @@
         icon: mdi-bookshelf
         description: Ebooks, audiobooks, comics
         siteMonitor: https://books.lab.egorras.net
+    - Grocy:
+        href: https://grocy.lab.egorras.net
+        icon: grocy.svg
+        description: Groceries, inventory, chores
+        siteMonitor: https://grocy.lab.egorras.net
     - Home Assistant:
         href: http://192.168.0.59
         icon: home-assistant.svg

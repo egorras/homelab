@@ -1,0 +1,87 @@
+# Grocy (grocy.info): groceries/household inventory, meal planning, chores. https://grocy.lab.egorras.net
+# SQLite DB and config live in a PVC on the VM disk (NVMe) - no other storage needed.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: grocy
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grocy
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate # single node + ReadWriteOnce volumes: never run two copies
+  selector:
+    matchLabels:
+      app: grocy
+  template:
+    metadata:
+      labels:
+        app: grocy
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+        - name: grocy
+          image: lscr.io/linuxserver/grocy:v4.7.1-ls342
+          env:
+            - {name: TZ, value: Europe/Berlin}
+          ports:
+            - {name: http, containerPort: 80}
+          readinessProbe: # no documented health path
+            httpGet: {path: /, port: http}
+          resources:
+            requests: {cpu: 10m, memory: 128Mi}
+            limits: {memory: 512Mi}
+          volumeMounts:
+            - {name: config, mountPath: /config}
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: grocy-config
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grocy-config
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled # removing the app from git must not delete the database
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grocy
+spec:
+  selector:
+    app: grocy
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grocy
+spec:
+  rules:
+    - host: grocy.lab.egorras.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grocy
+                port:
+                  name: http
+  tls:
+    - hosts: [grocy.lab.egorras.net] # wildcard certificate from Traefik's default TLS store

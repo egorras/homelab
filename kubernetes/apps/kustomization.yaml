@@ -8,6 +8,8 @@ resources:
   - immich
   # books
   - bookorbit
+  # household
+  - grocy
   # platform
   - homepage
   - headlamp
