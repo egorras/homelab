@@ -101,7 +101,7 @@ spec:
     spec:
       containers:
         - name: bookorbit
-          image: ghcr.io/bookorbit/bookorbit:v3.1.0 # pinned tag; Renovate bumps it
+          image: ghcr.io/bookorbit/bookorbit:sha-09e4f1b5bd50 # pinned tag; Renovate bumps it - upstream only publishes sha-* and main tags, no semver releases
           env:
             - {name: NODE_ENV, value: production}
             - {name: PORT, value: "3000"}
