@@ -6,6 +6,8 @@ resources:
   - pinchflat
   # photos
   - immich
+  # books
+  - bookorbit
   # platform
   - homepage
   - headlamp

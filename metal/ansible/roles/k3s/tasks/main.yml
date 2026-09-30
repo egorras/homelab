@@ -18,6 +18,16 @@
     opts: defaults,nofail
     state: mounted
 
+# BookOrbit's library (virtiofs tag "books"); the app mounts this hostPath directly, so an unmounted share
+# keeps it from starting instead of filling the VM disk.
+- name: Mount books share
+  ansible.posix.mount:
+    path: "{{ k3s_books_mountpoint }}"
+    src: books
+    fstype: virtiofs
+    opts: defaults,nofail
+    state: mounted
+
 - name: Install k3s binary
   ansible.builtin.get_url:
     url: https://github.com/k3s-io/k3s/releases/download/{{ k3s_version | urlencode }}/k3s

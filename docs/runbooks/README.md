@@ -12,3 +12,4 @@ Step-by-step procedures for things that are not (yet) automated. One file per pr
 - [pinchflat.md](pinchflat.md): YouTube channels into Jellyfin: first setup, adding channels, the Jellyfin library
 - [homelable.md](homelable.md): network map drawn from topology.yaml, Proxmox import token
 - [media.md](media.md): Prowlarr/Sonarr/Radarr/qBittorrent/Jellyseerr: PIA secret, first setup, Jellyfin libraries
+- [bookorbit.md](bookorbit.md): ebooks/audiobooks/comics: books virtiofs share, first setup, bootstrap token

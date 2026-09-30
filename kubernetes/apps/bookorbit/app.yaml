@@ -1,0 +1,176 @@
+# BookOrbit (bookorbit.app): self-hosted ebook/audiobook/comics library and reader. https://books.lab.egorras.net
+# Library on the HDD (host /mnt/hdd/books, virtiofs "books" -> VM /mnt/books -> /books); Postgres and app config
+# on the VM disk (NVMe). Runbook: docs/runbooks/bookorbit.md.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bookorbit
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bookorbit-postgres
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled # removing the app from git must not delete the database
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bookorbit-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookorbit-postgres
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate # single node + ReadWriteOnce volumes: never run two copies
+  selector:
+    matchLabels:
+      app: bookorbit-postgres
+  template:
+    metadata:
+      labels:
+        app: bookorbit-postgres
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: postgres
+          image: pgvector/pgvector:pg18 # BookOrbit needs pgvector; major version must match on restore.
+          env:
+            - {name: POSTGRES_USER, value: bookorbit}
+            - {name: POSTGRES_DB, value: bookorbit}
+            - {name: PGDATA, value: /var/lib/postgresql/data/pgdata}
+            - name: POSTGRES_PASSWORD
+              valueFrom: {secretKeyRef: {name: bookorbit, key: postgres-password}}
+          ports:
+            - name: postgres
+              containerPort: 5432
+          readinessProbe:
+            exec:
+              command: [pg_isready, -U, bookorbit, -d, bookorbit]
+          resources:
+            requests: {cpu: 25m, memory: 128Mi}
+            limits: {memory: 1Gi}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: bookorbit-postgres
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bookorbit-postgres
+spec:
+  selector:
+    app: bookorbit-postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookorbit
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate # single node + ReadWriteOnce volumes: never run two copies
+  selector:
+    matchLabels:
+      app: bookorbit
+  template:
+    metadata:
+      labels:
+        app: bookorbit
+    spec:
+      containers:
+        - name: bookorbit
+          image: ghcr.io/bookorbit/bookorbit:v3.1.0 # pinned tag; Renovate bumps it
+          env:
+            - {name: NODE_ENV, value: production}
+            - {name: PORT, value: "3000"}
+            - {name: TZ, value: Europe/Berlin}
+            # Container starts as root and chowns /books + /data to this uid/gid before dropping privileges,
+            # same convention as the other virtiofs shares (pve_host_media_uid).
+            - {name: PUID, value: "1000"}
+            - {name: PGID, value: "1000"}
+            - {name: POSTGRES_HOST, value: bookorbit-postgres}
+            - {name: POSTGRES_PORT, value: "5432"}
+            - {name: POSTGRES_USER, value: bookorbit}
+            - {name: POSTGRES_DB, value: bookorbit}
+            - name: POSTGRES_PASSWORD
+              valueFrom: {secretKeyRef: {name: bookorbit, key: postgres-password}}
+            - name: JWT_SECRET
+              valueFrom: {secretKeyRef: {name: bookorbit, key: jwt-secret}}
+            - name: SETUP_BOOTSTRAP_TOKEN
+              valueFrom: {secretKeyRef: {name: bookorbit, key: setup-bootstrap-token}}
+            - {name: APP_URL, value: "https://books.lab.egorras.net"}
+          ports:
+            - name: http
+              containerPort: 3000
+          readinessProbe: # no documented health path; a TCP check is enough to gate rollouts
+            tcpSocket:
+              port: http
+          resources:
+            requests: {cpu: 50m, memory: 256Mi}
+            limits: {cpu: 1000m, memory: 1Gi}
+          volumeMounts:
+            - name: books
+              mountPath: /books
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: books
+          hostPath:
+            path: /mnt/books # exists only after the virtiofs share is mounted: an unmounted share keeps the pod from starting
+            type: Directory
+        - name: data
+          persistentVolumeClaim:
+            claimName: bookorbit-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bookorbit
+spec:
+  selector:
+    app: bookorbit
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bookorbit
+spec:
+  rules:
+    - host: books.lab.egorras.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: bookorbit
+                port:
+                  name: http
+  tls:
+    - hosts: [books.lab.egorras.net] # wildcard certificate from Traefik's default TLS store
