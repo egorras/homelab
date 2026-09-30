@@ -22,6 +22,11 @@ spec:
       labels:
         app: qbittorrent
     spec:
+      # Gluetun uses its own public DNS resolver. Resolve tracker FQDNs before trying
+      # Kubernetes search suffixes, which that resolver cannot resolve.
+      dnsConfig:
+        options:
+          - {name: ndots, value: "1"}
       containers:
         - name: gluetun
           image: qmcgaw/gluetun:v3.40.0

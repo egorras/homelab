@@ -62,6 +62,13 @@ this; in Prowlarr add it once as an Indexer Proxy (Settings → Indexer Proxies 
 indexer stuck behind a Cloudflare challenge - just point its proxy field at FlareSolverr too.
 
 ## Troubleshooting
+- All trackers report `Host not found (authoritative)`: compare `getent hosts tracker.opentrackr.org`
+  with `getent hosts tracker.opentrackr.org.` inside the qBittorrent container. The pod needs `dnsConfig`
+  `ndots: "1"`: Kubernetes' default `ndots:5` tries cluster search suffixes against Gluetun's public DNS
+  resolver before the real tracker name. Keep the fix in Git, since Flux reverts deployment-only patches.
+- Random PIA endpoints fail with `Host is unreachable`: check the timestamp in `/gluetun/servers.json`.
+  Once the VPN is connected, refresh it with `kubectl -n media exec deployment/qbittorrent -c gluetun --
+  /gluetun-entrypoint update -enduser -providers "private internet access" -dns 127.0.0.1` (one command).
 - `qbittorrent` pod stuck `ContainerCreating`, `hostPath type check failed` on `/dev/net/tun` or `/mnt/media`:
   the media share isn't mounted on the VM (`findmnt /mnt/media`), or the node's `tun` kernel module isn't
   loaded (`lsmod | grep tun`; `modprobe tun` then check `k3s_media_mountpoint`/tun wiring persists across

@@ -25,6 +25,12 @@ requires a reboot to attach the new virtiofs device.
    to PUID/PGID 1000 on startup).
 
 ## Troubleshooting
+- Requests download paths: qBittorrent's `books` category saves to `/data/downloads/books`, mapped in
+  BookOrbit's download client to `/downloads` (host `/mnt/media/downloads/books`). qBittorrent's default
+  Automatic Torrent Management must be enabled so new requests use the category folder. For existing
+  book torrents saved under `/data/downloads`, enable Automatic Torrent Management on those torrents to
+  relocate them. Recover a failed import through Settings -> Requests -> Download clients -> Reconcile,
+  then attach the completed torrent to its failed request; this reuses the existing download.
 - Pod stuck in `ContainerCreating` with `hostPath type check failed`: the `books` share isn't mounted in the VM
   (`findmnt /mnt/books`), or `/mnt/hdd/books` is missing on the Proxmox host (rerun the `pve_host` Ansible role).
 - No readiness probe path is documented for the app container, so it's a plain TCP check on port 3000; a pod can
