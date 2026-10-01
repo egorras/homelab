@@ -106,8 +106,10 @@ spec:
             tcpSocket:
               port: http
           resources:
-            requests: {cpu: 50m, memory: 256Mi}
-            limits: {cpu: 500m, memory: 1Gi}
+            # 1Gi OOMKilled on first boot: it downloads an embedding model (sentence-transformers) and runs
+            # DB migrations before it's even up.
+            requests: {cpu: 50m, memory: 512Mi}
+            limits: {cpu: 500m, memory: 2Gi}
           volumeMounts:
             - name: data
               mountPath: /app/backend/data
