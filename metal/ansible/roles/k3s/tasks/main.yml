@@ -52,12 +52,15 @@
 
 # Pods must not inherit the VM's search domain (lab.egorras.net): with ndots:5 every external name is tried as
 # <name>.lab.egorras.net first, and the *.lab wildcard answers it with the ingress IP (github.com -> Traefik).
+# Second line is a fallback only: pod-forwarded UDP to the router's resolver started failing under heavy load
+# during a bulk import (OOM-adjacent; root cause still unclear) while host-originated queries kept working fine.
 - name: K3s resolv.conf (no search domain)
   ansible.builtin.copy:
     dest: /etc/rancher/k3s/resolv.conf
     mode: "0644"
     content: |
       nameserver {{ lan_gateway }}
+      nameserver 1.1.1.1
   notify: Restart k3s
 
 - name: K3s config
