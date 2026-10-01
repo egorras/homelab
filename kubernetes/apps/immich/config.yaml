@@ -7,6 +7,13 @@ storageTemplate:
 backup:
   database:
     cronExpression: "0 4 * * 0"
+# Lower concurrency than default: a bulk import (tens of thousands of assets at once) was OOMKilling
+# immich-microservices (5Gi limit) repeatedly - too many concurrent ffmpeg/thumbnail jobs in one container.
+# Serialize video conversion especially; it's the single heaviest job (see immich-microservices' resources comment).
+job:
+  thumbnailGeneration: {concurrency: 2}
+  metadataExtraction: {concurrency: 2}
+  videoConversion: {concurrency: 1}
 # Defaults run all three daily at 03:00 and the checksum one reads every original on the HDD. Weekly, an hour after
 # the Proxmox vzdump (Sun 03:00, metal/ansible/roles/pve_host/defaults/main.yml) so the two don't fight over the HDD.
 integrityChecks:
