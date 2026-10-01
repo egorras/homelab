@@ -1,0 +1,148 @@
+# Ollama + Open WebUI: local chat, moved here from an ad-hoc Oracle VPS test (too slow on 1 ARM core).
+# https://chat.lab.egorras.net. Deliberately small: the k3s VM is RAM-tight (see docs/adr), so this stays on
+# a 1-3B model until the planned RAM upgrade. Pull a model once, by hand: `ollama pull llama3.2:1b` via
+# `kubectl -n chat exec deploy/ollama -- ollama pull <model>`.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chat
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: chat-ollama-models
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: chat-webui-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate # single node + ReadWriteOnce volumes: never run two copies
+  selector:
+    matchLabels:
+      app: ollama
+  template:
+    metadata:
+      labels:
+        app: ollama
+    spec:
+      containers:
+        - name: ollama
+          image: ollama/ollama:latest # unpinned for now - no settled version yet, this is still a test
+          ports:
+            - name: http
+              containerPort: 11434
+          readinessProbe:
+            tcpSocket:
+              port: http
+          resources:
+            requests: {cpu: 200m, memory: 256Mi}
+            # 3Gi caps a 1-3B model comfortably; immich-microservices OOMKilling at 5Gi is exactly the
+            # failure mode to avoid here (docs/runbooks/immich.md) - keep this well under the VM's budget.
+            limits: {cpu: 2000m, memory: 3Gi}
+          volumeMounts:
+            - name: models
+              mountPath: /root/.ollama
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: chat-ollama-models
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama
+spec:
+  selector:
+    app: ollama
+  ports:
+    - name: http
+      port: 11434
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: open-webui
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: open-webui
+  template:
+    metadata:
+      labels:
+        app: open-webui
+    spec:
+      containers:
+        - name: open-webui
+          image: ghcr.io/open-webui/open-webui:main
+          env:
+            - {name: OLLAMA_BASE_URL, value: "http://ollama:11434"}
+            - {name: WEBUI_AUTH, value: "true"}
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            tcpSocket:
+              port: http
+          resources:
+            requests: {cpu: 50m, memory: 256Mi}
+            limits: {cpu: 500m, memory: 1Gi}
+          volumeMounts:
+            - name: data
+              mountPath: /app/backend/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: chat-webui-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: open-webui
+spec:
+  selector:
+    app: open-webui
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: chat
+spec:
+  rules:
+    - host: chat.lab.egorras.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: open-webui
+                port:
+                  name: http
+  tls:
+    - hosts: [chat.lab.egorras.net] # wildcard certificate from Traefik's default TLS store
