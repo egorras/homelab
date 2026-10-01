@@ -54,9 +54,10 @@ spec:
               port: http
           resources:
             requests: {cpu: 200m, memory: 256Mi}
-            # 3Gi caps a 1-3B model comfortably; immich-microservices OOMKilling at 5Gi is exactly the
-            # failure mode to avoid here (docs/runbooks/immich.md) - keep this well under the VM's budget.
-            limits: {cpu: 2000m, memory: 3Gi}
+            # 4Gi fits a 3B model (weights + context) with room to spare; immich-microservices OOMKilling at
+            # 5Gi is exactly the failure mode to avoid here (docs/runbooks/immich.md) - stay well under the
+            # VM's budget.
+            limits: {cpu: 2000m, memory: 4Gi}
           volumeMounts:
             - name: models
               mountPath: /root/.ollama
