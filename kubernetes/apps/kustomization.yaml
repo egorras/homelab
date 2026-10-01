@@ -14,7 +14,6 @@ resources:
   - homepage
   - headlamp
   - homelable
-  - chat
   # external guests (LXC/VM/bare metal, see lab-services/services.yaml) + smoke test
   - lab-services
   - whoami
