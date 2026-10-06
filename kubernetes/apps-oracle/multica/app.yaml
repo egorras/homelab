@@ -1,0 +1,72 @@
+# Multica: AI coding-agent task board (Claude Code, Codex, etc. pick up issues like a teammate).
+# Replaces a hand-run Dokploy/Compose stack on this same VPS - this is the Flux-managed version.
+# No ingress controller on this cluster (same as immich-ml), so ingress is disabled and the
+# frontend/backend Services are patched to NodePort below; reached over Tailscale by VPS IP:port,
+# not a hostname (docs/runbooks/multica.md).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: multica
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: multica
+  namespace: multica
+spec:
+  interval: 12h
+  url: oci://ghcr.io/multica-ai/charts/multica
+  ref:
+    tag: "0.6.1"
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: multica
+  namespace: multica
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: multica
+      sourceRef:
+        kind: OCIRepository
+        name: multica
+  values:
+    existingSecret: multica-secrets
+    ingress:
+      enabled: false
+    backend:
+      config:
+        appEnv: production
+        appUrl: http://100.83.54.16:30080
+        frontendOrigin: http://100.83.54.16:30080
+        localUploadBaseUrl: http://100.83.54.16:30081
+        googleRedirectUri: http://100.83.54.16:30080/auth/callback
+    # NodePort, not ClusterIP/Ingress - same reasoning as immich-ml's Service in this namespace's
+    # sibling app: reached over Tailscale by the VPS's IP, not in-cluster DNS or an Ingress
+    # controller (there isn't one here). Ports chosen to fit k3s's default NodePort range
+    # (30000-32767); the old Dokploy stack's 8450/8451 don't.
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: Service
+              name: multica-backend
+            patch: |
+              - op: replace
+                path: /spec/type
+                value: NodePort
+              - op: add
+                path: /spec/ports/0/nodePort
+                value: 30081
+          - target:
+              kind: Service
+              name: multica-frontend
+            patch: |
+              - op: replace
+                path: /spec/type
+                value: NodePort
+              - op: add
+                path: /spec/ports/0/nodePort
+                value: 30080

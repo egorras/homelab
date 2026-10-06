@@ -1,7 +1,17 @@
 # Age recipients. Private keys: admin key in the password manager + offline copy (never in git);
-# the k3s cluster key is k3s_sops_age_key in metal/secrets.sops.yaml, handed to Flux by the k3s Ansible role.
+# the home k3s cluster key is k3s_sops_age_key in metal/secrets.sops.yaml, handed to Flux by the k3s
+# Ansible role. The oracle cluster key has no Ansible role yet (that VPS isn't metal/-managed) - it
+# was generated once by hand and the sops-age Secret created directly in its flux-system namespace;
+# private key lives in the password manager next to the admin key.
 creation_rules:
-  # Cluster secrets: admin + cluster key, so a compromised cluster can't read metal/ secrets.
+  # Oracle cluster secrets: admin + oracle cluster key only, so a compromised oracle cluster can't
+  # read home's secrets (checked before the generic kubernetes/ rule below).
+  - path_regex: kubernetes/apps-oracle/.*\.sops\.ya?ml$
+    encrypted_regex: ^(data|stringData)$
+    age: >-
+      age14uzygqz0hgepvwphdrsualggykr8wpesulf29vphwzhr6ttxafhqmsjpgs,
+      age1ddunl737fwmcvp3lmcyymuw9ac8pcjf5h0pfu2ajhsd03xwmvdpq7gc9zn
+  # Home cluster secrets: admin + home cluster key, so a compromised cluster can't read metal/ secrets.
   - path_regex: kubernetes/.*\.sops\.ya?ml$
     encrypted_regex: ^(data|stringData)$
     age: >-

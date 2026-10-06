@@ -1,0 +1,56 @@
+# The Multica agent runtime daemon (docs/runbooks/multica.md) - drives Claude Code/Codex on tasks
+# assigned in the Multica board whose server runs on the Oracle VPS (kubernetes/apps-oracle/multica).
+# Lives here, not there, so it's always on independent of the user's PC. No Service/Ingress: it only
+# dials out to the server over the existing Tailscale route from the Proxmox host (docs/adr/0003).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: multica-runtime
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: multica-runtime-home
+  namespace: multica-runtime
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: multica-runtime
+  namespace: multica-runtime
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: multica-runtime
+  template:
+    metadata:
+      labels:
+        app: multica-runtime
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: multica-runtime
+          image: ghcr.io/egorras/multica-runtime:latest
+          env:
+            - {name: MULTICA_SERVER_URL, value: "http://100.83.54.16:30081"}
+          resources:
+            requests: {cpu: 50m, memory: 256Mi}
+            limits: {cpu: 2000m, memory: 3Gi} # bursts during npm installs/builds/agent runs
+          volumeMounts:
+            - name: home
+              mountPath: /home/agent
+      volumes:
+        - name: home
+          persistentVolumeClaim:
+            claimName: multica-runtime-home
