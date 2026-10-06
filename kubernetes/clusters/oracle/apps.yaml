@@ -1,5 +1,6 @@
 # The Oracle VPS cluster (docs/adr/0005): its own Flux, watching only kubernetes/apps-oracle, never
-# kubernetes/apps (home's). No decryption block yet - nothing here needs secrets; add one when something does.
+# kubernetes/apps (home's). Decrypts with its own cluster key (sops-age Secret in flux-system,
+# created by hand - this cluster has no Ansible role to do it automatically like home's k3s does).
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
@@ -12,3 +13,7 @@ spec:
   sourceRef:
     kind: GitRepository
     name: flux-system
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
