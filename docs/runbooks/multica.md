@@ -35,6 +35,10 @@ ports 8450/8451) - decommissioned once the Flux-managed version below was verifi
    under Settings → Runtimes in the web app.
 
 ## Troubleshooting
+- Runtime pod `ImagePullBackOff` the first time: GHCR makes a brand-new package private by
+  default even in a public repo. After the `multica-runtime-image` workflow's first successful
+  push, go to the package's settings on GitHub (github.com/egorras/homelab → Packages →
+  `multica-runtime` → Package settings) and change visibility to Public. One-time only.
 - Runtime pod `CrashLoopBackOff` before step 5 is done: expected - the daemon exits if it isn't
   logged in yet. Not a bug.
 - Backend pod not `Ready`: it waits on Postgres + migrations behind a startupProbe; give it a
