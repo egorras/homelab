@@ -12,15 +12,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # only thing that changes what's running - matches this repo's "pinned tag" convention.
 RUN npm install -g @anthropic-ai/claude-code@2.1.291 @openai/codex@0.160.1
 
+# Install as root, while /usr/local/bin is still writable, so the binary lands there - not under
+# $HOME. The installer (scripts/install.sh) falls back to $HOME/.local/bin otherwise, which the
+# PVC mounted over /home/node at runtime would hide completely (Codex review on PR #44).
+RUN curl -fsSL https://raw.githubusercontent.com/multica-ai/multica/main/scripts/install.sh | bash
+
 # node:22-bookworm-slim already ships a uid-1000 "node" user/home - reuse it instead of creating
 # a second one (useradd would collide on uid 1000).
 ENV HOME=/home/node
-ENV PATH="/home/node/.multica/bin:${PATH}"
-
 USER node
 WORKDIR /home/node
-
-RUN curl -fsSL https://raw.githubusercontent.com/multica-ai/multica/main/scripts/install.sh | bash
 
 # --foreground keeps it as PID 1; --no-auto-update/-reload because version changes should come
 # from rebuilding this image, not the daemon mutating its own binary on the PVC at runtime.
