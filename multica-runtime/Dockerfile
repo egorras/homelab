@@ -23,6 +23,5 @@ ENV HOME=/home/node
 USER node
 WORKDIR /home/node
 
-# --foreground keeps it as PID 1; --no-auto-update/-reload because version changes should come
-# from rebuilding this image, not the daemon mutating its own binary on the PVC at runtime.
-CMD ["multica", "daemon", "start", "--foreground", "--no-auto-update", "--no-auto-reload", "--runtime-name", "homelab-k3s"]
+COPY --chmod=755 entrypoint.sh /usr/local/bin/entrypoint.sh
+CMD ["/usr/local/bin/entrypoint.sh"]
