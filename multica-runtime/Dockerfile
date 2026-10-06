@@ -12,12 +12,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # only thing that changes what's running - matches this repo's "pinned tag" convention.
 RUN npm install -g @anthropic-ai/claude-code@2.1.291 @openai/codex@0.160.1
 
-RUN useradd --create-home --home-dir /home/agent --uid 1000 --shell /bin/bash agent
-ENV HOME=/home/agent
-ENV PATH="/home/agent/.multica/bin:${PATH}"
+# node:22-bookworm-slim already ships a uid-1000 "node" user/home - reuse it instead of creating
+# a second one (useradd would collide on uid 1000).
+ENV HOME=/home/node
+ENV PATH="/home/node/.multica/bin:${PATH}"
 
-USER agent
-WORKDIR /home/agent
+USER node
+WORKDIR /home/node
 
 RUN curl -fsSL https://raw.githubusercontent.com/multica-ai/multica/main/scripts/install.sh | bash
 

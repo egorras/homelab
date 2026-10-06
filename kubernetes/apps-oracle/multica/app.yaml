@@ -26,12 +26,9 @@ metadata:
   namespace: multica
 spec:
   interval: 30m
-  chart:
-    spec:
-      chart: multica
-      sourceRef:
-        kind: OCIRepository
-        name: multica
+  chartRef:
+    kind: OCIRepository
+    name: multica
   values:
     existingSecret: multica-secrets
     ingress:
