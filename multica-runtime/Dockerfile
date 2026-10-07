@@ -4,8 +4,10 @@
 # interactive logins (claude/codex/multica) survive pod restarts.
 FROM node:22-bookworm-slim
 
+# procps: codex's background "app-server" process tracking shells out to `ps`, which this slim
+# base image doesn't ship - without it, any codex invocation (not just login) fails immediately.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      git openssh-client ca-certificates curl \
+      git openssh-client ca-certificates curl procps \
     && rm -rf /var/lib/apt/lists/*
 
 # Agent CLIs multica drives. Pin versions deliberately (never @latest) so an image rebuild is the
