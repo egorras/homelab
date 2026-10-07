@@ -74,6 +74,11 @@
         icon: headlamp.svg
         description: Kubernetes UI
         siteMonitor: https://k8s.lab.egorras.net
+    - Multica:
+        href: https://multica.lab.egorras.net
+        icon: mdi-robot-outline
+        description: AI coding-agent task board
+        siteMonitor: http://multica-backend.multica-proxy.svc/healthz
     - GitHub:
         href: https://github.com/egorras/homelab
         icon: github.svg
