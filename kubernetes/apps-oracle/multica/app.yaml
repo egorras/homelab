@@ -1,8 +1,10 @@
 # Multica: AI coding-agent task board (Claude Code, Codex, etc. pick up issues like a teammate).
 # Replaces a hand-run Dokploy/Compose stack on this same VPS - this is the Flux-managed version.
 # No ingress controller on this cluster (same as immich-ml), so ingress is disabled and the
-# frontend/backend Services are patched to NodePort below; reached over Tailscale by VPS IP:port,
-# not a hostname (docs/runbooks/multica.md).
+# frontend/backend Services are patched to NodePort below, reached over Tailscale by VPS IP:port.
+# https://multica.lab.egorras.net / multica-api.lab.egorras.net reach the same NodePorts through a
+# reverse-proxy on the homelab cluster (kubernetes/apps/multica-proxy) - that's the cluster with the
+# ingress controller + wildcard cert, not this one (docs/runbooks/multica.md).
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -36,10 +38,10 @@ spec:
     backend:
       config:
         appEnv: production
-        appUrl: http://100.83.54.16:30080
-        frontendOrigin: http://100.83.54.16:30080
-        localUploadBaseUrl: http://100.83.54.16:30081
-        googleRedirectUri: http://100.83.54.16:30080/auth/callback
+        appUrl: https://multica.lab.egorras.net
+        frontendOrigin: https://multica.lab.egorras.net
+        localUploadBaseUrl: https://multica-api.lab.egorras.net
+        googleRedirectUri: https://multica.lab.egorras.net/auth/callback
     # NodePort, not ClusterIP/Ingress - same reasoning as immich-ml's Service in this namespace's
     # sibling app: reached over Tailscale by the VPS's IP, not in-cluster DNS or an Ingress
     # controller (there isn't one here). Ports chosen to fit k3s's default NodePort range

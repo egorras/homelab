@@ -15,6 +15,7 @@ resources:
   - headlamp
   - homelable
   - multica-runtime
+  - multica-proxy
   # external guests (LXC/VM/bare metal, see lab-services/services.yaml) + smoke test
   - lab-services
   - whoami
