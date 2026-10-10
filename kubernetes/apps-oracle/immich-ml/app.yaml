@@ -36,7 +36,7 @@ spec:
       enableServiceLinks: false
       containers:
         - name: machine-learning
-          image: ghcr.io/immich-app/immich-machine-learning:v3.2.2 # CPU only; keep in sync with home's Immich version
+          image: ghcr.io/immich-app/immich-machine-learning:v3.3.1 # CPU only; keep in sync with home's Immich version
           ports:
             - name: http
               containerPort: 3003
