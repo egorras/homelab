@@ -44,6 +44,11 @@ spec:
           image: ghcr.io/egorras/multica-runtime:latest
           env:
             - {name: MULTICA_SERVER_URL, value: "http://100.83.54.16:30081"}
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: multica-runtime-github
+                  key: GITHUB_TOKEN
           resources:
             requests: {cpu: 50m, memory: 256Mi}
             limits: {cpu: 2000m, memory: 3Gi} # bursts during npm installs/builds/agent runs

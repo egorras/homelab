@@ -5,6 +5,15 @@
 # run `multica setup self-host` + `claude login` + `codex login`. Retrying in a loop instead means
 # the container is always reachable, and once login succeeds the next retry just runs for good.
 set -u
+
+# GITHUB_TOKEN (optional) -> git credential store, so claude/codex can clone/push without prompting.
+# Written to $HOME on the PVC every boot (cheap, idempotent) rather than baked into the image, since
+# it's account-scoped and rotates independently of the image.
+if [ -n "${GITHUB_TOKEN:-}" ]; then
+  git config --global credential.helper store
+  echo "https://${GITHUB_TOKEN}@github.com" > "$HOME/.git-credentials"
+fi
+
 while true; do
   multica daemon start --foreground --no-auto-update --no-auto-reload --runtime-name homelab-k3s
   echo "multica daemon exited ($?); retrying in 30s" >&2
