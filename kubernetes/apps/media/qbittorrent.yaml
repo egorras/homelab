@@ -29,7 +29,7 @@ spec:
           - {name: ndots, value: "1"}
       containers:
         - name: gluetun
-          image: qmcgaw/gluetun:v3.40.0
+          image: qmcgaw/gluetun:v3.41.3
           securityContext:
             capabilities:
               add: [NET_ADMIN] # needed to bring up the tun interface and set firewall rules
