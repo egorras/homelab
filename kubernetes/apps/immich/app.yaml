@@ -156,14 +156,14 @@ spec:
         # Immich refuses to start when a folder it has used lacks its .immich marker. The HDD folders keep
         # theirs; thumbnails live on a fresh volume after a restore and are regenerated, so mark it here.
         - name: thumbs-marker
-          image: ghcr.io/immich-app/immich-server:v3.2.2
+          image: ghcr.io/immich-app/immich-server:v3.3.1
           command: [sh, -c, "test -e /thumbs/.immich || date +%s000 > /thumbs/.immich"]
           volumeMounts:
             - name: thumbs
               mountPath: /thumbs
       containers:
         - name: server
-          image: ghcr.io/immich-app/immich-server:v3.2.2
+          image: ghcr.io/immich-app/immich-server:v3.3.1
           env:
             - {name: TZ, value: Europe/Berlin}
             - {name: DB_HOSTNAME, value: immich-postgres}
@@ -242,14 +242,14 @@ spec:
       enableServiceLinks: false
       initContainers:
         - name: thumbs-marker # see immich-server
-          image: ghcr.io/immich-app/immich-server:v3.2.2
+          image: ghcr.io/immich-app/immich-server:v3.3.1
           command: [sh, -c, "test -e /thumbs/.immich || date +%s000 > /thumbs/.immich"]
           volumeMounts:
             - name: thumbs
               mountPath: /thumbs
       containers:
         - name: microservices
-          image: ghcr.io/immich-app/immich-server:v3.2.2
+          image: ghcr.io/immich-app/immich-server:v3.3.1
           env:
             - {name: TZ, value: Europe/Berlin}
             - {name: DB_HOSTNAME, value: immich-postgres}
