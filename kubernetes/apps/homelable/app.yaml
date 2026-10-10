@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: ghcr.io/pouzor/homelable-backend:3.5.1
+          image: ghcr.io/pouzor/homelable-backend:3.6.0
           env:
             - {name: SQLITE_PATH, value: /app/data/homelab.db}
             - {name: CORS_ORIGINS, value: '["https://map.lab.egorras.net"]'}
@@ -69,7 +69,7 @@ spec:
               mountPath: /app/data
         # Draws the lab from topology.yaml over the backend API, then idles. Same image: has httpx + PyYAML.
         - name: seed
-          image: ghcr.io/pouzor/homelable-backend:3.5.1
+          image: ghcr.io/pouzor/homelable-backend:3.6.0
           command: [python, -u, /seed/seed.py]
           env:
             - name: HOMELABLE_PASSWORD
