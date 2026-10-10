@@ -116,7 +116,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: ghcr.io/pouzor/homelable-frontend:3.5.1
+          image: ghcr.io/pouzor/homelable-frontend:3.6.0
           env:
             - name: BACKEND_UPSTREAM # nginx proxies /api and /ws here
               value: homelable-backend:8000
