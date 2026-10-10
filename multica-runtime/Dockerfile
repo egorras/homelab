@@ -2,7 +2,7 @@
 # Lives in the homelab k3s cluster so it's always on (docs/runbooks/multica.md), unlike the user's
 # PC. Image only; config/auth/workspaces all live on the PVC mounted at $HOME so the one-time
 # interactive logins (claude/codex/multica) survive pod restarts.
-FROM node:22-bookworm-slim
+FROM node:24-bookworm-slim
 
 # procps: codex's background "app-server" process tracking shells out to `ps`, which this slim
 # base image doesn't ship - without it, any codex invocation (not just login) fails immediately.
