@@ -51,7 +51,16 @@ ports 8450/8451) - decommissioned once the Flux-managed version below was verifi
 - Backend pod not `Ready`: it waits on Postgres + migrations behind a startupProbe; give it a
   minute before worrying. `kubectl -n multica logs deploy/multica-backend`.
 - Bumping the runtime image: `.github/workflows/multica-runtime-image.yml` builds
-  `ghcr.io/egorras/multica-runtime` on changes under `multica-runtime/`; the Deployment currently
-  tracks `:latest` rather than a pinned sha (unlike this repo's other apps) because there was no
-  published tag to pin to yet. Switch `kubernetes/apps/multica-runtime/app.yaml` to a `sha-<short>`
-  tag once you want reproducible, deliberate upgrades instead.
+  `ghcr.io/egorras/multica-runtime` on changes under `multica-runtime/`. The Deployment pins a
+  `sha-<short>` tag (like this repo's other apps) that Renovate bumps once a new image is pushed.
+- Keeping `claude`/`codex`/`multica` current in the image: all three are pinned versions in
+  `multica-runtime/Dockerfile` (deliberately, not `@latest` - upstream's own `multica` installer
+  always grabs GitHub's latest release at install time, so the image fetches a specific tagged
+  release tarball directly instead). Renovate custom managers (`renovate.json`) track
+  `@anthropic-ai/claude-code`, `@openai/codex` (npm datasource) and `multica-ai/multica`
+  (github-releases datasource, via the `MULTICA_VERSION` build arg) and open PRs when new versions
+  ship. Merging one updates the Dockerfile, which triggers a rebuild/push, which Renovate then picks
+  up as a new `sha-<short>` tag for `app.yaml` per the point above - the pod only picks up the new
+  image once that second PR merges and Flux reconciles (or you `kubectl rollout restart` manually).
+  Note the daemon itself runs with `--no-auto-update` (`entrypoint.sh`) so it never drifts from
+  whatever got baked into the image between rebuilds.

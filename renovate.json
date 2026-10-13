@@ -5,6 +5,30 @@
   "mise": { "enabled": true },
   "flux": { "managerFilePatterns": ["/^kubernetes/.+\\.ya?ml$/"] },
   "kubernetes": { "managerFilePatterns": ["/^kubernetes/.+\\.ya?ml$/"] },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^multica-runtime/Dockerfile$/"],
+      "matchStrings": ["@anthropic-ai/claude-code@(?<currentValue>[^\\s]+)"],
+      "depNameTemplate": "@anthropic-ai/claude-code",
+      "datasourceTemplate": "npm"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^multica-runtime/Dockerfile$/"],
+      "matchStrings": ["@openai/codex@(?<currentValue>[^\\s]+)"],
+      "depNameTemplate": "@openai/codex",
+      "datasourceTemplate": "npm"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^multica-runtime/Dockerfile$/"],
+      "matchStrings": ["ARG MULTICA_VERSION=(?<currentValue>[^\\s]+)"],
+      "depNameTemplate": "multica-ai/multica",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.+)$"
+    }
+  ],
   "packageRules": [
     { "matchUpdateTypes": ["patch", "digest"], "matchManagers": ["github-actions", "pre-commit", "mise"], "automerge": true },
     { "matchUpdateTypes": ["digest"], "matchManagers": ["kubernetes", "flux"], "automerge": true },
