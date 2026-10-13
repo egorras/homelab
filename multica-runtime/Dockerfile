@@ -14,10 +14,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # only thing that changes what's running - matches this repo's "pinned tag" convention.
 RUN npm install -g @anthropic-ai/claude-code@2.1.291 @openai/codex@0.160.1
 
+# Pinned like the CLIs above - upstream's own installer always grabs GitHub's "latest" release
+# at install time, which would silently drift the binary on every unrelated image rebuild. Fetch
+# the release tarball directly instead so Renovate (github-releases datasource) bumps this
+# deliberately, matching the npm-pinned CLIs.
+ARG MULTICA_VERSION=0.6.2
 # Install as root, while /usr/local/bin is still writable, so the binary lands there - not under
 # $HOME. The installer (scripts/install.sh) falls back to $HOME/.local/bin otherwise, which the
 # PVC mounted over /home/node at runtime would hide completely (Codex review on PR #44).
-RUN curl -fsSL https://raw.githubusercontent.com/multica-ai/multica/main/scripts/install.sh | bash
+RUN curl -fsSL "https://github.com/multica-ai/multica/releases/download/v${MULTICA_VERSION}/multica-cli-${MULTICA_VERSION}-linux-amd64.tar.gz" \
+      | tar -xz -C /usr/local/bin multica
 
 # node:22-bookworm-slim already ships a uid-1000 "node" user/home - reuse it instead of creating
 # a second one (useradd would collide on uid 1000).

@@ -41,7 +41,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: multica-runtime
-          image: ghcr.io/egorras/multica-runtime:latest
+          image: ghcr.io/egorras/multica-runtime:sha-1415107 # pinned tag; Renovate bumps it (docs/runbooks/multica.md)
           env:
             - {name: MULTICA_SERVER_URL, value: "http://100.83.54.16:30081"}
             - name: GITHUB_TOKEN
