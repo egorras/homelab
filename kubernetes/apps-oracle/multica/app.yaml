@@ -19,7 +19,7 @@ spec:
   interval: 12h
   url: oci://ghcr.io/multica-ai/charts/multica
   ref:
-    tag: "0.6.1"
+    tag: "0.6.2"
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
