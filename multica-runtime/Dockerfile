@@ -18,7 +18,7 @@ RUN npm install -g @anthropic-ai/claude-code@2.1.296 @openai/codex@0.162.1
 # at install time, which would silently drift the binary on every unrelated image rebuild. Fetch
 # the release tarball directly instead so Renovate (github-releases datasource) bumps this
 # deliberately, matching the npm-pinned CLIs.
-ARG MULTICA_VERSION=0.6.2
+ARG MULTICA_VERSION=0.6.3
 # Install as root, while /usr/local/bin is still writable, so the binary lands there - not under
 # $HOME. The installer (scripts/install.sh) falls back to $HOME/.local/bin otherwise, which the
 # PVC mounted over /home/node at runtime would hide completely (Codex review on PR #44).
