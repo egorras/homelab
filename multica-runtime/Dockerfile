@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Agent CLIs multica drives. Pin versions deliberately (never @latest) so an image rebuild is the
 # only thing that changes what's running - matches this repo's "pinned tag" convention.
-RUN npm install -g @anthropic-ai/claude-code@2.1.296 @openai/codex@0.162.1
+RUN npm install -g @anthropic-ai/claude-code@2.1.302 @openai/codex@0.162.1
 
 # Pinned like the CLIs above - upstream's own installer always grabs GitHub's "latest" release
 # at install time, which would silently drift the binary on every unrelated image rebuild. Fetch
