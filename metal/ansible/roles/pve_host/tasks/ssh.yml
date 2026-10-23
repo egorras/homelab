@@ -1,0 +1,19 @@
+- name: Authorize admin SSH keys for root
+  ansible.posix.authorized_key:
+    user: root
+    key: "{{ item }}"
+  loop: "{{ pve_host_admin_ssh_keys }}"
+  loop_control:
+    label: "{{ item.split(' ')[-1] }}"
+  when: pve_host_admin_ssh_keys | length > 0
+
+- name: Key-only SSH for root
+  ansible.builtin.copy:
+    dest: /etc/ssh/sshd_config.d/10-homelab.conf
+    mode: "0644"
+    content: |
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      PermitRootLogin prohibit-password
+  when: pve_host_disable_password_ssh
+  notify: Reload sshd

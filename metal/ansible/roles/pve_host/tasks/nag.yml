@@ -1,0 +1,9 @@
+# The exact string patched here shifts between pve-manager releases; if an
+# update changes it, this task just no-ops (changed=false) until updated.
+- name: Remove "No valid subscription" nag from the web UI
+  ansible.builtin.replace:
+    path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+    regexp: 'res === null \|\| res === undefined \|\| !res \|\| res'
+    replace: "false"
+    backup: true
+  notify: Restart pveproxy

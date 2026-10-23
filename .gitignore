@@ -1,0 +1,8 @@
+# Proxmox automated install - real answer file contains secrets (password hash, FQDN, keys)
+metal/proxmox/answer.toml
+metal/proxmox/*.iso
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp

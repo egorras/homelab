@@ -1,0 +1,5 @@
+- name: Configure Proxmox VE host
+  hosts: pve
+  gather_facts: true
+  roles:
+    - pve_host

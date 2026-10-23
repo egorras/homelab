@@ -1,0 +1,39 @@
+# Proxmox VE Automated Installer answer file (template).
+#
+# Copy this to `answer.toml` (gitignored - it ends up with a real password
+# hash and hostname) and fill in the placeholders below, then:
+#
+#   1. Generate a password hash:        ../scripts/gen-password-hash.sh
+#   2. Validate the file:               ../scripts/validate-answer.sh
+#   3. Build a bootable ISO with it:    ../scripts/build-iso.sh
+#
+# Full reference: https://pve.proxmox.com/pve-docs/chapter-pve-installation.html#install-proxmox-ve
+
+[global]
+keyboard = "en-us"
+country = "at"
+# Any valid timezone, e.g. "America/New_York", "Europe/Berlin", "UTC"
+timezone = "Europe/Vienna"
+fqdn = "pve1.homelab.lan"
+mailto = "CHANGE_ME@example.com"
+# SHA-512 crypt hash from gen-password-hash.sh. Never commit a plaintext password.
+root-password-hashed = "CHANGE_ME"
+# Reboot automatically if installation fails verification checks (leave false while testing).
+reboot-on-error = false
+
+[network]
+# "from-answer" = use the static settings below. Use "from-dhcp" instead if
+# this node should just grab an address from your router on first boot.
+source = "from-answer"
+cidr = "192.168.0.10/24"
+dns = "192.168.0.1"
+gateway = "192.168.0.1"
+# Pick the NIC by its udev name (`ip link` on a live-booted ISO shows these),
+# e.g. "eno1", "enp2s0". Avoids guessing "eth0" wrong on multi-NIC boards.
+filter.ID_NET_NAME = "CHANGE_ME"
+
+[disk-setup]
+filesystem = "ext4"
+# Disk(s) to install onto, by device name as shown in a live ISO shell
+# (`lsblk`), e.g. "sda" or "nvme0n1". ALL DATA ON THESE DISKS IS ERASED.
+disk-list = ["CHANGE_ME"]

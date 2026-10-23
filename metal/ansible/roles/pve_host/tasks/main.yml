@@ -1,0 +1,8 @@
+- name: Repos and packages
+  ansible.builtin.import_tasks: repos.yml
+
+- name: SSH hardening
+  ansible.builtin.import_tasks: ssh.yml
+
+- name: Remove subscription nag
+  ansible.builtin.import_tasks: nag.yml

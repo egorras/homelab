@@ -1,0 +1,12 @@
+# SSH public keys to authorize for root, beyond any baked into
+# install/answer.toml's root-ssh-keys during install (harmless overlap).
+pve_host_admin_ssh_keys: []
+
+# Disables password SSH login once you've confirmed key login works.
+# Leave false until then - locking yourself out of a box with no other
+# access path is hard to undo.
+pve_host_disable_password_ssh: false
+
+# Dist-upgrade packages on every run. Off by default so runs stay fast and
+# predictable; turn on when you actually want to apply updates.
+pve_host_upgrade: false
